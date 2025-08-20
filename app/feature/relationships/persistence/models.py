@@ -3,9 +3,6 @@ from typing import Optional
 from datetime import datetime, date
 from sqlmodel import SQLModel, Field
 
-from app.persistance.db import engine
-
-
 class Person(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     first_name: str
@@ -34,6 +31,3 @@ class Reminder(SQLModel, table=True):
     reason: str
     status: str = Field(default="open")
 
-
-# Garantir que as tabelas sejam criadas quando este módulo for importado
-SQLModel.metadata.create_all(engine)

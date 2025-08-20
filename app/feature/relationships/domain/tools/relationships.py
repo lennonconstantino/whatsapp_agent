@@ -3,13 +3,12 @@ from typing import Literal, Optional
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
-from app.persistance.db import engine
-from app.persistance.relationships_models import Person, Interaction, Reminder
 from app.domain.tools.base import Tool, ToolResult
 
+from app.feature.relationships.persistence.db import engine
+from app.feature.relationships.persistence.models import Person, Interaction, Reminder
 
 # === Add tools ===
-
 
 class AddPerson(BaseModel):
     first_name: str
@@ -20,7 +19,6 @@ class AddPerson(BaseModel):
     city: Optional[str] = None
     notes: Optional[str] = None
 
-
 def add_person_function(**data) -> str:
     with Session(engine) as session:
         person = Person.model_validate(data)
@@ -29,13 +27,11 @@ def add_person_function(**data) -> str:
         session.refresh(person)
         return f"Added person {person.first_name} {person.last_name} (id={person.id})"
 
-
 add_person_tool = Tool(
     name="add_person",
     model=AddPerson,
     function=add_person_function,
 )
-
 
 class LogInteraction(BaseModel):
     person_id: int
@@ -45,7 +41,6 @@ class LogInteraction(BaseModel):
     summary: Optional[str] = None
     sentiment: Optional[float] = None
 
-
 def log_interaction_function(**data) -> str:
     with Session(engine) as session:
         interaction = Interaction.model_validate(data)
@@ -54,20 +49,17 @@ def log_interaction_function(**data) -> str:
         session.refresh(interaction)
         return f"Logged interaction id={interaction.id} for person_id={interaction.person_id}"
 
-
 log_interaction_tool = Tool(
     name="log_interaction",
     model=LogInteraction,
     function=log_interaction_function,
 )
 
-
 class ScheduleReminder(BaseModel):
     person_id: int
     due_date: str
     reason: str
     status: Optional[str] = "open"
-
 
 def schedule_reminder_function(**data) -> str:
     with Session(engine) as session:
@@ -77,21 +69,17 @@ def schedule_reminder_function(**data) -> str:
         session.refresh(reminder)
         return f"Scheduled reminder id={reminder.id} for person_id={reminder.person_id}"
 
-
 schedule_reminder_tool = Tool(
     name="schedule_reminder",
     model=ScheduleReminder,
     function=schedule_reminder_function,
 )
 
-
 # === Query tools ===
-
 
 class QueryPeople(BaseModel):
     name_contains: Optional[str] = None
     tag_contains: Optional[str] = None
-
 
 def query_people_function(**kwargs) -> ToolResult:
     name_contains = kwargs.get("name_contains")
@@ -105,19 +93,16 @@ def query_people_function(**kwargs) -> ToolResult:
         result = session.exec(statement).all()
         return ToolResult(content=str([repr(r) for r in result]), success=True)
 
-
 query_people_tool = Tool(
     name="query_people",
     model=QueryPeople,
     function=query_people_function,
 )
 
-
 class QueryInteractions(BaseModel):
     person_id: Optional[int] = None
     channel: Optional[str] = None
     type: Optional[str] = None
-
 
 def query_interactions_function(**kwargs) -> ToolResult:
     with Session(engine) as session:
@@ -131,17 +116,14 @@ def query_interactions_function(**kwargs) -> ToolResult:
         result = session.exec(statement).all()
         return ToolResult(content=str([repr(r) for r in result]), success=True)
 
-
 query_interactions_tool = Tool(
     name="query_interactions",
     model=QueryInteractions,
     function=query_interactions_function,
 )
 
-
 class UpcomingReminders(BaseModel):
     days_ahead: int = 7
-
 
 def upcoming_reminders_function(**kwargs) -> ToolResult:
     from datetime import datetime, timedelta
@@ -150,7 +132,6 @@ def upcoming_reminders_function(**kwargs) -> ToolResult:
         statement = select(Reminder).where(Reminder.due_date <= horizon, Reminder.status == "open")
         result = session.exec(statement).all()
         return ToolResult(content=str([repr(r) for r in result]), success=True)
-
 
 upcoming_reminders_tool = Tool(
     name="upcoming_reminders",

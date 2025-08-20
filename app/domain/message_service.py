@@ -3,11 +3,12 @@ import json
 import requests
 from typing import BinaryIO
 
-#from app.domain.agents.demo_agent import demo_agent
 from app.domain.agents.routing import RoutingAgent
-from app.feature.finance.domain.agents.finance_agent import finance_agent
 from app.schema import Audio, User
 from openai import OpenAI
+
+#from app.feature.finance.domain.agents.finance_agent import finance_agent
+from app.feature.relationships.domain.agents.relationships_agents import relationships_agent
 
 from dotenv import load_dotenv
 _ = load_dotenv() # forcar a execucao
@@ -113,7 +114,7 @@ def send_whatsapp_message(to, message, template=True):
 
 def respond_and_send_message(user_message: str, user: User):
     # TODO: 
-    agent = finance_agent
+    agent = relationships_agent
     response = agent.run(user_message, user.id)
     send_whatsapp_message(user.phone, response, template=False)
     print(f"Sent message to user {user.first_name} {user.last_name} ({user.phone})")

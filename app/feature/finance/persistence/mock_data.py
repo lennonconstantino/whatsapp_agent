@@ -1,12 +1,11 @@
-
 import argparse
 from datetime import datetime
 from pathlib import Path
 from sqlmodel import Session, create_engine, SQLModel
-from app.feature.finance.persistance.models import Revenue, Expense, Customer, Invoice
+from app.feature.finance.persistence.models import Revenue, Expense, Customer, Invoice
 
 # Uso:
-# python -m app.feature.finance.persistance.mock_data --db-name "finance_app.db" --db-path "./"
+# python -m app.feature.finance.persistence.mock_data --db-name "finance_app.db" --db-path "./"
 # ou
 # python mock_data.py --db-name "finance_app.db" --db-path "./databases"
 

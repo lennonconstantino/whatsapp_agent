@@ -6,7 +6,7 @@ from app.domain.tools.base import Tool
 from app.feature.finance.domain.tools.query import query_data_tool
 from app.feature.finance.domain.tools.add import add_entry_to_table
 from app.feature.finance.domain.agents.task import SYSTEM_MESSAGE as TASK_SYSTEM_MESSAGE
-from app.feature.finance.persistance.models import Expense, Revenue, Customer
+from app.feature.finance.persistence.models import Expense, Revenue, Customer
 
 from app.feature.finance.domain.agents.routing import SYSTEM_MESSAGE as ROUTING_SYSTEM_MESSAGE, PROMPT_EXTRA
 

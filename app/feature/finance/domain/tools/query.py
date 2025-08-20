@@ -5,8 +5,8 @@ from sqlmodel import Session, select, SQLModel
 
 from app.domain.tools.base import ToolResult, Tool
 
-from app.feature.finance.persistance.models import *
-from app.feature.finance.persistance.db import engine
+from app.feature.finance.persistence.models import *
+from app.feature.finance.persistence.db import engine
 
 TABLES = {
     "expense": Expense,

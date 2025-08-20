@@ -3,8 +3,8 @@ from sqlmodel import Session
 
 from app.domain.tools.base import Tool
 
-from app.feature.finance.persistance.models import *
-from app.feature.finance.persistance.db import engine
+from app.feature.finance.persistence.models import *
+from app.feature.finance.persistence.db import engine
 
 def add_row_to_table(model_instance: SQLModel):
     with Session(engine) as session:
