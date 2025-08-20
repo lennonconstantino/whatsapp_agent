@@ -2,3 +2,6 @@ uvicorn
 dotenv
 openai
 langchain
+sqlmodel
+colorama
+fastapi

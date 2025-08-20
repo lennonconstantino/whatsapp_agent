@@ -5,6 +5,7 @@ from typing import BinaryIO
 
 #from app.domain.agents.demo_agent import demo_agent
 from app.domain.agents.routing import RoutingAgent
+from app.feature.finance.domain.agents.finance_agent import finance_agent
 from app.schema import Audio, User
 from openai import OpenAI
 
@@ -111,10 +112,8 @@ def send_whatsapp_message(to, message, template=True):
 
 
 def respond_and_send_message(user_message: str, user: User):
-    demo_agent = RoutingAgent(
-        tools=[]
-    )
-    agent = demo_agent
+    # TODO: 
+    agent = finance_agent
     response = agent.run(user_message, user.id)
     send_whatsapp_message(user.phone, response, template=False)
     print(f"Sent message to user {user.first_name} {user.last_name} ({user.phone})")

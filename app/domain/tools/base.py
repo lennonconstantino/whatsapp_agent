@@ -1,6 +1,6 @@
 from typing import Type, Callable, Union
 
-from app.domain.tools.utils import convert_to_openai_tool
+from app.domain.tools.utils.utils import convert_to_openai_tool
 from pydantic import BaseModel, ConfigDict
 from sqlmodel import SQLModel
 

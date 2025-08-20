@@ -30,7 +30,6 @@ Return only one tool call at a time.
 {context}
 """
 
-
 class OpenAIAgent:
 
     def __init__(

@@ -172,4 +172,4 @@ def whatsapp_webhook(data: Dict[Any, Any], background_tasks: BackgroundTasks):
 
 if __name__ == "__main__":
     # noinspection PyTypeChecker
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)  # nosec
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)  # nosec

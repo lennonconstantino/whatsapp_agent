@@ -5,33 +5,13 @@ from app.domain.tools.base import Tool
 from app.domain.tools.report_tool import report_tool
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.domain.tools.utils import convert_to_openai_tool
+from app.domain.tools.utils.system_message_factory import StaticSystemMessageProvider, SystemMessageProvider
+from app.domain.tools.utils.utils import convert_to_openai_tool
 
-
-SYSTEM_MESSAGE = """You are tasked with completing specific objectives and must report the outcomes. At your disposal, you have a variety of tools, each specialized in performing a distinct type of task.
-
-For successful task completion:
-Thought: Consider the task at hand and determine which tool is best suited based on its capabilities and the nature of the work. 
-If you can complete the task or answer a question, soley by the information provided you can use the report_tool directly.
-
-Use the report_tool with an instruction detailing the results of your work or to answer a user question.
-If you encounter an issue and cannot complete the task:
-
-Use the report_tool to communicate the challenge or reason for the task's incompletion.
-You will receive feedback based on the outcomes of each tool's task execution or explanations for any tasks that couldn't be completed. This feedback loop is crucial for addressing and resolving any issues by strategically deploying the available tools.
-
-On error: If information are missing consider if you can deduce or calculate the missing information and repeat the tool call with more arguments.
-
-Use the information provided by the user to deduct the correct tool arguments.
-Before using a tool think about the arguments and explain each input argument used in the tool. 
-Return only one tool call at a time! Explain your thoughts!
-{context}
-"""
-
+DEFAULT_SYSTEM_MESSAGE = """"""
 
 class EmptyArgModel(BaseModel):
     pass
-
 
 class TaskAgent(BaseModel):
     name: str
@@ -43,12 +23,27 @@ class TaskAgent(BaseModel):
     create_user_context: Callable = None
     tool_loader: Callable = None
 
-    system_message: str = SYSTEM_MESSAGE
+    # Novo: Provedor de mensagem do sistema (mantém compatibilidade)
+    system_message_provider: SystemMessageProvider = Field(
+        default_factory=lambda: StaticSystemMessageProvider(DEFAULT_SYSTEM_MESSAGE)
+    )
+    
+    # Mantido para compatibilidade (deprecated)
+    system_message: Optional[str] = None
+
     tools: list[Tool]
     examples: list[dict] = None
     routing_example: list[dict] = Field(default_factory=list)
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    def __init__(self, **data):
+        # Compatibilidade: se system_message foi passado, usar StaticProvider
+        if 'system_message' in data and data['system_message'] is not None:
+            if 'system_message_provider' not in data:
+                data['system_message_provider'] = StaticSystemMessageProvider(data['system_message'])
+        
+        super().__init__(**data)
 
     def load_agent(self, **kwargs) -> OpenAIAgent:
 

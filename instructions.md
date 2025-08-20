@@ -42,3 +42,13 @@ ngrok http http://localhost:$PORT
 - Preencha a “URL de Callback", com o link gerado no Ngrok e adicione /webhook no final do endpoint.
 - Preencha o “Verificar token”, com a chave que vai ficar no seu servidor.
 - Habilitar os “campos do webhook”: flows e messages
+
+# Toda vez que rodar o Whatsapp Business para testar
+- rodar o Ngrok
+- pegar o endpoint Forwaring https://...ngrok-free.app
+- rodar o server
+- ir no na pagina da Meta de Configuração do Webhook
+- atualizar a URL de Callback:
+    - https://...ngrok-free.app/webhook
+    - VERIFICATION_TOKEN
+    - atualizar

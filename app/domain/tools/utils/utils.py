@@ -9,6 +9,8 @@ import typing
 import sqlalchemy
 from pydantic import BaseModel
 
+
+
 def convert_to_openai_tool(
         model: Type[BaseModel],
         *,

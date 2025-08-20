@@ -1,32 +1,13 @@
 from openai import OpenAI
-
 import colorama
 
 from app.domain.agents.task import TaskAgent
-
 from app.domain.agents.utils import parse_function_args
-
-
-SYSTEM_MESSAGE = """You are a helpful assistant.
-Role: You are an AI Assistant designed to serve as the primary point of contact for users interacting through a chat interface. 
-Your primary role is to understand users' requests related to database operations and route these requests to the appropriate tool.
-
-Capabilities: 
-You have access to a variety of tools designed for Create, Read operations on a set of predefined tables in a database. 
-
-Tables:
-{table_names}
-"""
 
 NOTES = """Important Notes:
 Always confirm the completion of the requested operation with the user.
 Maintain user privacy and data security throughout the interaction.
 If a request is ambiguous or lacks specific details, ask follow-up questions to clarify the user's needs."""
-
-
-PROMPT_EXTRA = {
-    "table_names": "expense, revenue, customer"
-}
 
 class RoutingAgent:
 
@@ -34,7 +15,7 @@ class RoutingAgent:
             self,
             tools: list[TaskAgent] = None,
             client: OpenAI = OpenAI(),
-            system_message: str = SYSTEM_MESSAGE,
+            system_message: str = "",
             model_name: str = "gpt-3.5-turbo",
             max_steps: int = 5,
             verbose: bool = True,
@@ -50,7 +31,7 @@ class RoutingAgent:
         self.step_history = []
         self.max_steps = max_steps
         self.verbose = verbose
-        self.prompt_extra = prompt_extra or PROMPT_EXTRA
+        self.prompt_extra = prompt_extra
         self.examples = self.load_examples(examples)
         self.context = context or ""
 
