@@ -2,11 +2,9 @@ import os
 import json
 import requests
 from typing import BinaryIO
-
-from app.domain.agents.routing import RoutingAgent
-from app.schema import Audio, User
 from openai import OpenAI
 
+from app.schema import Audio, User
 #from app.feature.finance.domain.agents.finance_agent import finance_agent
 from app.feature.relationships.domain.agents.relationships_agents import relationships_agent
 
