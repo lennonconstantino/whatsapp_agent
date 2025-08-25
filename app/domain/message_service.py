@@ -118,8 +118,7 @@ def respond_and_send_message(user_message: str, user: User):
     print(f"Sent message to user {user.first_name} {user.last_name} ({user.phone})")
     print(f"Message: {response}")
 
-'''
-if __name__ == "__main__":
-    demo_agent.run("What are my expenses", 1)
 
-'''
+if __name__ == "__main__":
+    relationships_agent.run("Who is my contacts?", 1)
+

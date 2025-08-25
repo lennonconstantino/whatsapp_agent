@@ -1,12 +1,10 @@
+from typing import Dict
 import colorama
 from colorama import Fore
-from openai import OpenAI
+from app.infrastructure.llm import models
 from pydantic.v1 import BaseModel
 from app.domain.tools.base import Tool, ToolResult
 from app.domain.agents.utils import parse_function_args, run_tool_from_response
-
-from dotenv import load_dotenv
-_ = load_dotenv() # forcar a execucao
 
 class StepResult(BaseModel):
     event: str
@@ -35,9 +33,10 @@ class OpenAIAgent:
     def __init__(
             self,
             tools: list[Tool],
-            client: OpenAI = OpenAI(),
+            #client: OpenAI = OpenAI(),
             system_message: str = SYSTEM_MESSAGE,
-            model_name: str = "gpt-3.5-turbo-0125",
+            #model_name: str = "gpt-3.5-turbo-0125",
+            llm: Dict[str, any] = models,
             max_steps: int = 5,
             verbose: bool = True,
             examples: list[dict] = None,
@@ -45,8 +44,9 @@ class OpenAIAgent:
             user_context: str = None
     ):
         self.tools = tools
-        self.client = client
-        self.model_name = model_name
+        self.llm = llm
+        #self.client = client
+        #self.model_name = model_name
         self.system_message = system_message
         self.memory = []
         self.step_history = []
@@ -102,11 +102,15 @@ class OpenAIAgent:
     def run_step(self, messages: list[dict], tools):
 
         # plan the next step
-        response = self.client.chat.completions.create(
-            model=self.model_name,
-            messages=messages,
-            tools=tools
-        )
+        # response = self.client.chat.completions.create(
+        #     model=self.model_name,
+        #     messages=messages,
+        #     tools=tools
+        # )
+
+        self.llm["3.5-turbo"].bind_tools(tools=tools)
+        response = self.llm["3.5-turbo"].invoke(messages)
+
         # check for multiple tool calls
         if response.choices[0].message.tool_calls and len(response.choices[0].message.tool_calls) > 1:
             messages = [
