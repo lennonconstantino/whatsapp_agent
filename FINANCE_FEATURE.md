@@ -26,6 +26,7 @@ Este guia detalha a funcionalidade de gestão financeira do agente implementado 
 - **SQLite**: `finance_app.db` (local)
 - **ORM**: SQLModel para mapeamento objeto-relacional
 - **Localização**: Raiz do projeto
+- **Inicialização**: Controlada para evitar conflitos com outros módulos
 
 ## 📊 Entidades e Campos
 
@@ -107,6 +108,8 @@ Este guia detalha a funcionalidade de gestão financeira do agente implementado 
 - **Operações**: listar, filtrar por datas, somar totais, mostrar últimos lançamentos
 - **Filtros**: por tabela, colunas específicas, condições WHERE
 - **Exemplos**: "listar despesas", "mostrar receitas do mês", "total de gastos"
+- **Validação**: `validate_missing=False` para permitir parâmetros opcionais
+- **Parâmetros**: `table_name` (obrigatório), `select_columns` e `where` (opcionais)
 
 ### 2. Adicionar Despesa (add_expense_agent)
 **Ferramenta**: `add_entry_to_table(Expense)`
@@ -225,8 +228,8 @@ Este guia detalha a funcionalidade de gestão financeira do agente implementado 
 **Solução**: Verificar se o agente está na lista de `tools` do `finance_agent`
 
 #### "Missing values: select_columns, where"
-**Causa**: Modelo não tem `arg_model` configurado
-**Solução**: Adicionar `arg_model` apropriado ao `TaskAgent`
+**Causa**: Modelo não tem `arg_model` configurado ou validação muito rigorosa
+**Solução**: Adicionar `arg_model` apropriado ao `TaskAgent` e configurar `validate_missing=False` para ferramentas de query
 
 #### "Webhook não funciona"
 **Causa**: Configuração incorreta do Ngrok ou token
@@ -326,6 +329,16 @@ flowchart LR
 ```
 
 ## 🧪 Testes e Dados Mock
+
+### Inicializar Banco de Dados
+```bash
+# Inicializar banco finance (executar uma vez)
+python -c "
+from app.feature.finance.persistence.db import create_db_and_tables
+create_db_and_tables()
+print('✅ Banco finance inicializado!')
+"
+```
 
 ### Carregar Dados de Exemplo
 ```bash

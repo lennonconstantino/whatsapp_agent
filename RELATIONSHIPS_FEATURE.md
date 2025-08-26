@@ -178,10 +178,11 @@ app/feature/relationships/
 - **Arquivo**: `relationships_app.db`
 - **ORM**: SQLModel para mapeamento objeto-relacional
 - **Localização**: Raiz do projeto
+- **Inicialização**: Controlada para evitar conflitos com outros módulos
 
 ### **Dependências**
 - **Core**: SQLModel, Pydantic, FastAPI
-- **IA**: OpenAI GPT para roteamento
+- **IA**: OpenAI GPT + LangChain para roteamento
 - **Integração**: WhatsApp Business API via Meta Graph
 
 ## 📊 Diagramas
@@ -295,6 +296,16 @@ flowchart LR
 
 ## 🧪 Testes e Dados Mock
 
+### **Inicializar Banco de Dados**
+```bash
+# Inicializar banco relationships (executar uma vez)
+python -c "
+from app.feature.relationships.persistence.db import create_db_and_tables
+create_db_and_tables()
+print('✅ Banco relationships inicializado!')
+"
+```
+
 ### **Carregar Dados de Exemplo**
 ```bash
 # Executar script de dados mock
@@ -338,8 +349,8 @@ python -m app.feature.relationships.persistence.mock_data --db-name "meu_banco.d
 **Solução**: Verificar se o agente está na lista de `tools` do `relationships_agent`
 
 #### "Missing values"
-**Causa**: Modelo não tem campos obrigatórios preenchidos
-**Solução**: Verificar se todos os campos obrigatórios foram informados
+**Causa**: Modelo não tem campos obrigatórios preenchidos ou validação muito rigorosa
+**Solução**: Verificar se todos os campos obrigatórios foram informados e configurar `validate_missing=False` para ferramentas de query
 
 #### "Person not found"
 **Causa**: Tentativa de referenciar pessoa inexistente
@@ -372,6 +383,7 @@ python -m app.feature.relationships.persistence.mock_data --db-name "meu_banco.d
 - [ ] **Logs**: Monitorar erros e performance
 - [ ] **Tokens**: Renovar tokens da OpenAI e Meta API
 - [ ] **Backups**: Fazer backup regular do `relationships_app.db`
+- [ ] **Validações**: Verificar se ferramentas de query têm `validate_missing=False`
 
 ### **Atualizações**
 - [ ] **Dependências**: Manter `requirements.txt` atualizado

@@ -23,6 +23,7 @@ O WhatsApp Agent é um sistema de agentes inteligentes baseado em arquitetura de
 - **TaskAgent**: Executores especializados
 - **Tool**: Ferramentas de execução
 - **Cooperação**: Agentes trabalham em conjunto
+- **LangChain Integration**: Padronização com LangChain OpenAI para melhor integração
 
 ### **4. Event-Driven Architecture**
 - **Webhooks**: Recebimento de mensagens WhatsApp
@@ -62,7 +63,7 @@ O WhatsApp Agent é um sistema de agentes inteligentes baseado em arquitetura de
 │                   INFRASTRUCTURE LAYER                      │
 ├─────────────────────────────────────────────────────────────┤
 │  External Services                                         │
-│  • OpenAI GPT - Processamento de linguagem natural        │
+│  • OpenAI GPT + LangChain - Processamento de linguagem    │
 │  • WhatsApp Business API - Comunicação                    │
 │  • SQLite - Persistência de dados                         │
 │  • Ngrok - Túnel para desenvolvimento                     │
@@ -311,6 +312,7 @@ erDiagram
 - **`finance_app.db`**: Dados financeiros (Expense, Revenue, Customer)
 - **`relationships_app.db`**: Dados de relacionamentos (Person, Interaction, Reminder)
 - **Isolamento**: Cada feature tem seu próprio banco para independência
+- **Inicialização Controlada**: Bancos são criados sob demanda para evitar conflitos
 
 ## 🔄 Fluxo de Dados
 
@@ -619,6 +621,9 @@ graph TB
 - ✅ Arquitetura base implementada
 - ✅ Features Finance e Relationships funcionais
 - ✅ Padrões de agentes estabelecidos
+- ✅ Migração para LangChain OpenAI
+- ✅ Correção de validações de ferramentas
+- ✅ Isolamento de bancos de dados
 
 ### **Fase 2: Escalabilidade**
 - [ ] Migração para PostgreSQL/MySQL

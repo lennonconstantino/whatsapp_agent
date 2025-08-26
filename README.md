@@ -20,7 +20,7 @@ Sistema de agentes inteligentes para WhatsApp que permite gerenciar finanças pe
 
 - **Backend**: FastAPI + Python 3.12
 - **Banco de Dados**: SQLite com SQLModel
-- **IA/LLM**: OpenAI GPT (Whisper para transcrição de áudio)
+- **IA/LLM**: OpenAI GPT + LangChain (Whisper para transcrição de áudio)
 - **Integração**: WhatsApp Business API via Meta Graph
 - **Deploy**: Uvicorn + Ngrok para desenvolvimento
 
@@ -97,7 +97,19 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-### 4. **Carregar Dados Mock** (opcional)
+### 4. **Inicializar Bancos de Dados**
+```bash
+# Inicializar bancos de dados (executar uma vez)
+python -c "
+from app.feature.finance.persistence.db import create_db_and_tables as init_finance
+from app.feature.relationships.persistence.db import create_db_and_tables as init_relationships
+init_finance()
+init_relationships()
+print('✅ Bancos de dados inicializados!')
+"
+```
+
+### 5. **Carregar Dados Mock** (opcional)
 ```bash
 # Finance
 python -m app.feature.finance.persistence.mock_data
@@ -195,8 +207,10 @@ python -m pytest tests/e2e/
 
 ### **Erros Comuns**
 - **"Agent not found"**: Verificar se o agente está registrado no RoutingAgent
-- **"Missing values"**: Verificar se os modelos têm arg_model configurado
+- **"Missing values"**: Verificar se os modelos têm arg_model configurado e se `validate_missing=False` está configurado para ferramentas de query
+- **"Tool call validation error"**: Verificar se os exemplos de uso estão completos com todas as mensagens de tool necessárias
 - **Webhook não funciona**: Verificar Ngrok e VERIFICATION_TOKEN
+- **"Database tables in wrong DB"**: Executar inicialização de bancos separadamente
 
 ### **Logs e Debug**
 - Ativar modo verbose nos agentes
@@ -211,12 +225,27 @@ python -m pytest tests/e2e/
 
 ## 📈 Roadmap
 
+### **Melhorias Técnicas**
+- [x] Padronização para LangChain OpenAI
+- [x] Correção de validações de ferramentas
+- [x] Isolamento de bancos de dados por feature
+- [ ] Migração para PostgreSQL/MySQL
+- [ ] Implementação de cache Redis
+- [ ] Load balancing e auto-scaling
+
+### **Funcionalidades**
 - [ ] Categorização automática de transações
 - [ ] Integração com calendários externos
 - [ ] Análise de sentimento em relacionamentos
 - [ ] Dashboard web para visualização
 - [ ] Exportação de dados (CSV/PDF)
 - [ ] Notificações proativas
+
+### **IA Avançada**
+- [ ] Fine-tuning de modelos
+- [ ] Embeddings para busca semântica
+- [ ] Análise preditiva de relacionamentos
+- [ ] Recomendações personalizadas
 
 ## 🤝 Contribuição
 
