@@ -184,7 +184,7 @@ class Agent:
             )
         
         try:
-            return tool.run(**tool_args)
+            return tool._run(**tool_args)
         except Exception as e:
             return ToolResult(
                 content=f"Error running tool '{tool_name}': {str(e)}",

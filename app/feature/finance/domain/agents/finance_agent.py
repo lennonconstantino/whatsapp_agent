@@ -3,8 +3,8 @@ from app.domain.agents.utils import generate_query_context
 from app.domain.agents.task import TaskAgent
 from app.domain.tools.base import Tool
 
-from app.feature.finance.domain.tools.query import QueryDataTool, query_data_tool
-from app.feature.finance.domain.tools.add import AddCustomerTool, AddExpenseTool, AddRevenueTool, add_entry_to_table
+from app.feature.finance.domain.tools.query import query_data_tool
+from app.feature.finance.domain.tools.add import add_customer_tool, add_expense_tool, add_revenue_tool, add_entry_to_table
 from app.feature.finance.domain.agents.task import SYSTEM_MESSAGE as TASK_SYSTEM_MESSAGE
 from app.feature.finance.persistence.models import Expense, Revenue, Customer
 
@@ -65,11 +65,6 @@ add_customer_agent = TaskAgent(
     system_message=TASK_SYSTEM_MESSAGE
 )
 '''
-
-query_data_tool = QueryDataTool()
-add_expense_tool = AddExpenseTool()
-add_revenue_tool = AddRevenueTool()
-add_customer_tool = AddCustomerTool()
 
 query_task_agent = TaskAgent(
     name="query_agent",

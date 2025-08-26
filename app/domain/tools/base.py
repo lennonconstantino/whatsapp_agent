@@ -24,7 +24,7 @@ class Tool(BaseTool):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def run(self, **kwargs) -> ToolResult:
+    def _run(self, **kwargs) -> ToolResult:
         missing_values = self.validate_input(**kwargs)
         if missing_values:
             content = f"Missing values: {', '.join(missing_values)}"
@@ -40,6 +40,9 @@ class Tool(BaseTool):
         else:
             result = self.function(**kwargs)
         return ToolResult(content=str(result), success=True)
+    
+    def _arun(self, **kwargs) -> ToolResult:
+        return self._run(**kwargs)
 
     def validate_input(self, **kwargs):
         if not self.validate_missing or not self.model:

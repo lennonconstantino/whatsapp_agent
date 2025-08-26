@@ -68,6 +68,7 @@ class RoutingAgent:
         for agent in self.tools:
             if hasattr(agent, 'tools'):
                 for tool in agent.tools:
+                    #tools.append(tool)
                     if hasattr(tool, 'function'):
                         tools.append(tool)
 

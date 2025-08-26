@@ -5,7 +5,7 @@ from typing import BinaryIO
 from openai import OpenAI
 
 from app.schema import Audio, User
-#from app.feature.finance.domain.agents.finance_agent import finance_agent
+from app.feature.finance.domain.agents.finance_agent import finance_agent
 from app.feature.relationships.domain.agents.relationships_agents import relationships_agent
 
 from dotenv import load_dotenv
@@ -122,5 +122,5 @@ def respond_and_send_message(user_message: str, user: User):
 if __name__ == "__main__":
     relationships_agent.run("Who is my contacts?", 1)
     #print("\n\n\n")
-    #finance_agent.run("What are my expenses", 1)
+    finance_agent.run("What are my expenses?", 1)
 

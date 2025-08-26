@@ -1,9 +1,8 @@
-from typing import Optional, Type
+from typing import Callable, Optional, Type
 from pydantic import BaseModel, Field
 from sqlmodel import Session, select
-from langchain_core.tools import BaseTool
 
-from app.domain.tools.base import ToolResult
+from app.domain.tools.base import Tool, ToolResult
 from app.feature.relationships.persistence.db import *
 from app.feature.relationships.persistence.models import Person, Interaction, Reminder
 
@@ -18,10 +17,13 @@ class AddPerson(BaseModel):
     city: Optional[str] = Field(default=None, description="Cidade")
     notes: Optional[str] = Field(default=None, description="Notas adicionais")
 
-class AddPersonTool(BaseTool):
+class AddPersonTool(Tool):
     name: str = "add_person"
     description: str = "Add a new person to your contacts database"
     args_schema: Type[BaseModel] = AddPerson
+    model: Type[BaseModel] = AddPerson
+    function: Callable = None
+    parse_model: bool = True 
     
     def _run(self, **data) -> ToolResult:
         with Session(engine) as session:
@@ -42,10 +44,13 @@ class LogInteraction(BaseModel):
     summary: Optional[str] = Field(default=None, description="Resumo da interação")
     sentiment: Optional[float] = Field(default=None, description="Sentimento da interação (-1 a 1)")
 
-class LogInteractionTool(BaseTool):
+class LogInteractionTool(Tool):
     name: str = "log_interaction"
     description: str = "Log an interaction with a person in your contacts"
     args_schema: Type[BaseModel] = LogInteraction
+    model: Type[BaseModel] = LogInteraction
+    function: Callable = None
+    parse_model: bool = True 
     
     def _run(self, **data) -> ToolResult:
         with Session(engine) as session:
@@ -64,10 +69,13 @@ class ScheduleReminder(BaseModel):
     reason: str = Field(description="Motivo do lembrete")
     status: Optional[str] = Field(default="open", description="Status do lembrete")
 
-class ScheduleReminderTool(BaseTool):
+class ScheduleReminderTool(Tool):
     name: str = "schedule_reminder"
     description: str = "Schedule a reminder for a person"
     args_schema: Type[BaseModel] = ScheduleReminder
+    model: Type[BaseModel] = ScheduleReminder
+    function: Callable = None
+    parse_model: bool = True 
     
     def _run(self, **data) -> ToolResult:
         with Session(engine) as session:
@@ -86,10 +94,13 @@ class QueryPeople(BaseModel):
     name_contains: Optional[str] = Field(default=None, description="Buscar por nome (primeiro ou último)")
     tag_contains: Optional[str] = Field(default=None, description="Buscar por tags")
 
-class QueryPeopleTool(BaseTool):
+class QueryPeopleTool(Tool):
     name: str = "query_people"
     description: str = "Search for people in your contacts. You can search by name (first or last name) or by tags. Both parameters are optional - if neither is provided, all contacts will be returned."
     args_schema: Type[BaseModel] = QueryPeople
+    model: Type[BaseModel] = QueryPeople
+    function: Callable = None
+    parse_model: bool = True 
     
     def _run(self, **kwargs) -> ToolResult:
         name_contains = kwargs.get("name_contains")
@@ -111,10 +122,13 @@ class QueryInteractions(BaseModel):
     channel: Optional[str] = Field(default=None, description="Canal de comunicação para filtrar")
     type: Optional[str] = Field(default=None, description="Tipo de interação para filtrar")
 
-class QueryInteractionsTool(BaseTool):
+class QueryInteractionsTool(Tool):
     name: str = "query_interactions"
     description: str = "Search for interaction history with optional filters"
     args_schema: Type[BaseModel] = QueryInteractions
+    model: Type[BaseModel] = QueryInteractions
+    function: Callable = None
+    parse_model: bool = True 
     
     def _run(self, **kwargs) -> ToolResult:
         with Session(engine) as session:
@@ -134,10 +148,13 @@ class QueryInteractionsTool(BaseTool):
 class UpcomingReminders(BaseModel):
     days_ahead: int = Field(default=7, description="Número de dias à frente para buscar lembretes")
 
-class UpcomingRemindersTool(BaseTool):
+class UpcomingRemindersTool(Tool):
     name: str = "upcoming_reminders"
     description: str = "Get reminders due in the next specified number of days (default: 7 days)"
     args_schema: Type[BaseModel] = UpcomingReminders
+    model: Type[BaseModel] = UpcomingReminders
+    function: Callable = None
+    parse_model: bool = True 
     
     def _run(self, **kwargs) -> ToolResult:
         from datetime import datetime, timedelta

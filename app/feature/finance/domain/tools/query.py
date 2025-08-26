@@ -1,15 +1,12 @@
-from typing import Type, Union, Literal
+from typing import Callable, Type, Union, Literal
 
 from pydantic import BaseModel
 from sqlmodel import Session, select, SQLModel
 
-from app.domain.tools.base import ToolResult
+from app.domain.tools.base import Tool, ToolResult
 
 from app.feature.finance.persistence.models import *
 from app.feature.finance.persistence.db import engine
-
-from langchain_core.tools import BaseTool
-from langchain_core.tools import tool
 
 TABLES = {
     "expense": Expense,
@@ -103,6 +100,7 @@ def sql_query_from_config(
     return data
 '''
 
+
 class WhereStatement(BaseModel):
     column: str = Field(description="Nome da coluna para filtrar")
     operator: Literal["eq", "gt", "lt", "gte", "lte", "ne", "ct"] = Field(description="Operador de comparação")
@@ -112,21 +110,6 @@ class QueryConfig(BaseModel):
     table_name: str = Field(description="Nome da tabela (expense, revenue, customer)")
     select_columns: list[str] = Field(default=["*"], description="Colunas a selecionar")
     where: list[Union[WhereStatement, None]] = Field(default=[], description="Condições de filtro")
-
-class QueryDataTool(BaseTool):
-    name: str = "query_data_tool"
-    description: str = "Query financial data from the database. Required: table_name (expense, revenue, customer). Optional: select_columns (defaults to all columns), where conditions for filtering."
-    args_schema: Type[BaseModel] = QueryConfig
-    
-    def _run(self, query_config: QueryConfig) -> ToolResult:
-        # Manter lógica existente da função query_data_function
-        if query_config.table_name not in TABLES:
-            return ToolResult(content=f"Table name {query_config.table_name} not found in database models", success=False)
-        
-        return query_data_function(query_config)
-        
-    def _arun(self, query_config: QueryConfig) -> ToolResult:
-        return self._run(query_config)
 
 def sql_query_from_config(
         query_config: QueryConfig,
@@ -188,7 +171,28 @@ def query_data_function(query_config: QueryConfig) -> ToolResult:
     data = sql_query_from_config(query_config, sql_model)
 
     return ToolResult(content=f"Query results: {data}", success=True)
+
+class QueryDataTool(Tool):
+    name: str = "query_data_tool"
+    description: str = "Query financial data from the database. Required: table_name (expense, revenue, customer). Optional: select_columns (defaults to all columns), where conditions for filtering."
+    model: Type[BaseModel] = QueryConfig
+    function: Callable = query_data_function
+    parse_model: bool = True  # Para usar model.model_validate()
     
+    def _run(self, **kwargs) -> ToolResult:
+        try:
+            query_config = QueryConfig.model_validate(kwargs)
+        except Exception as e:
+            return ToolResult(content=f"Invalid parameters: {str(e)}", success=False)
+        
+        # Manter lógica existente da função query_data_function
+        if query_config.table_name not in TABLES:
+            return ToolResult(content=f"Table name {query_config.table_name} not found in database models", success=False)
+        
+        return query_data_function(query_config)
+        
+    def _arun(self, **kwargs) -> ToolResult:
+        return self._run(**kwargs)
 
 # Substituir a instância antiga
 query_data_tool = QueryDataTool()
