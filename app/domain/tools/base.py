@@ -1,18 +1,21 @@
-from typing import Type, Callable, Union
+from typing import Optional, Type, Callable, Union
 
 from app.domain.tools.utils.utils import convert_to_openai_tool, convert_to_langchain_tool
 from pydantic import BaseModel, ConfigDict
 from sqlmodel import SQLModel
 
+from langchain_core.tools import BaseTool
 
 class ToolResult(BaseModel):
     content: str
     success: bool
 
 
-class Tool(BaseModel):
+class Tool(BaseTool):
     name: str
     description: str = ""
+    args_schema: Optional[Type[BaseModel]] = None
+    #
     model: Union[Type[BaseModel], Type[SQLModel], None]
     function: Callable
     validate_missing: bool = True
@@ -80,10 +83,10 @@ def report_function(report: ReportSchema) -> str:
     return report.report
 
 
-report_tool = Tool(
-    name="report_tool",
-    model=ReportSchema,
-    function=report_function,
-    validate_missing=False,
-    parse_model=True
-)
+# report_tool = Tool(
+#     name="report_tool",
+#     model=ReportSchema,
+#     function=report_function,
+#     validate_missing=False,
+#     parse_model=True
+# )

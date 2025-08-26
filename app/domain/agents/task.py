@@ -7,6 +7,8 @@ from app.domain.tools.report_tool import report_tool
 from app.domain.tools.utils.system_message_factory import StaticSystemMessageProvider, SystemMessageProvider
 from app.domain.tools.utils.utils import convert_to_langchain_tool
 
+from langchain_core.tools import BaseTool
+
 DEFAULT_SYSTEM_MESSAGE = """"""
 
 class EmptyArgModel(BaseModel):
@@ -30,7 +32,8 @@ class TaskAgent(BaseModel):
     # Mantido para compatibilidade (deprecated)
     system_message: Optional[str] = None
 
-    tools: List[Tool]
+    #tools: List[Tool]
+    tools: List[BaseTool]  # Mudança: agora aceita BaseTool do LangChain
     examples: Optional[List[dict]] = None
     routing_example: List[dict] = Field(default_factory=list)
 
@@ -68,7 +71,8 @@ class TaskAgent(BaseModel):
     @property
     def langchain_tool_schema(self):
         """Retorna o schema da tool no formato LangChain."""
-        return convert_to_langchain_tool(self.arg_model, name=self.name, description=self.description)
+        #return convert_to_langchain_tool(self.arg_model, name=self.name, description=self.description)
+        return self.tools  # Agora retorna diretamente as ferramentas LangChain
 
     @property
     def openai_tool_schema(self):

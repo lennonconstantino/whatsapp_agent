@@ -1,8 +1,9 @@
 uvicorn
-dotenv
+python-dotenv
 openai
-langchain
+langchain>=0.1.0
+langchain-core>=0.1.0
+langchain-google-genai>=0.1.0
 sqlmodel
 colorama
 fastapi
-langchain_openai

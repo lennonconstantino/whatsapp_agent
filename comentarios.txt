@@ -1,0 +1,1 @@
+Estou tentando rodar o Gemini com o langchain porem o meu sistema não está está reconhecendo as ferramentas, você tem alguma ideia do que pode ser? Gerar a analise em um documento markdown, caso tenha alterações fazer as referencias dos respectivos fontes a serem alterados.

@@ -3,6 +3,8 @@ from typing import Type, Optional
 from langchain_core.utils.json_schema import dereference_refs
 from pydantic import BaseModel
 from typing import Type
+from langchain_core.tools import tool
+from langchain_core.tools import BaseTool
 
 from pydantic import BaseModel
 
@@ -25,11 +27,16 @@ def convert_to_langchain_tool(
         name: Optional[str] = None,
         description: Optional[str] = None,
 ) -> dict:
-    """Converts a Pydantic model to a function description for LangChain."""
-    function = convert_pydantic_to_openai_function(
-        model, name=name, description=description
-    )
-    return {"type": "function", "function": function}
+    """Converts a Pydantic model to a LangChain tool schema."""
+    schema = model.model_json_schema() if hasattr(model, "model_json_schema") else model.schema()
+    
+    return {
+        "type": "object",
+        "properties": schema.get("properties", {}),
+        "required": schema.get("required", []),
+        "name": name,
+        "description": description
+    }
 
 
 def convert_pydantic_to_openai_function(
@@ -51,3 +58,29 @@ def convert_pydantic_to_openai_function(
         "description": description or default_description,
         "parameters": _rm_titles(schema) if rm_titles else schema,
     }
+
+def convert_langchain_to_openai_tool(tool: BaseTool) -> dict:
+    """Converts a LangChain tool to OpenAI function format."""
+    if hasattr(tool, 'args_schema') and tool.args_schema:
+        schema = tool.args_schema.model_json_schema()
+        return {
+            "type": "function",
+            "function": {
+                "name": tool.name,
+                "description": tool.description,
+                "parameters": _rm_titles(schema)
+            }
+        }
+    else:
+        return {
+            "type": "function",
+            "function": {
+                "name": tool.name,
+                "description": tool.description,
+                "parameters": {
+                    "type": "object",
+                    "properties": {},
+                    "required": []
+                }
+            }
+        }

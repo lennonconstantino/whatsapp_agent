@@ -1,3 +1,4 @@
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 
 from dotenv import load_dotenv
@@ -10,16 +11,16 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 _PROVIDER_MAP = {
     "openai": ChatOpenAI,
-    #"google": ChatGoogleGenerativeAI
+    "google": ChatGoogleGenerativeAI
 }
 
 MODEL_CONFIGS = [
-    # {
-    #     "key_name": "gemini_2.5_flash",
-    #     "provider" : "google",
-    #     "model_name": "gemini-2.5-flash-preview-04-17",
-    #     "temprature": 1.0,
-    # },
+    {
+        "key_name": "gemini_1.5_flash",
+        "provider" : "google",
+        "model_name": "gemini-1.5-flash",
+        "temprature": 0.7,
+    },
     {
         "key_name":"3.5-turbo",
         "provider":"openai",
@@ -46,6 +47,16 @@ def _create_chat_model(model_name: str, provider: str, temperature: float | None
     if temperature is not None:
         params["temperature"] = temperature
 
+    # Configurações específicas por provedor
+    # if provider == "google":
+    #     params.update({
+    #         "convert_system_message_to_human": True,  # Importante para Gemini
+    #         # "tools_available": True  # Removi pois não é um parâmetro válido
+    #     })
+    #     # Se temperature não foi especificada, usar 0.7 como padrão para Google
+    #     if temperature is None:
+    #         params["temperature"] = 0.7
+
     return model_class(**params)
 
 models = {}
@@ -57,7 +68,7 @@ for config in MODEL_CONFIGS:
         temperature=config.get("temperature")
     )
 
-LLM = "3.5-turbo"
+LLM = "gemini_1.5_flash"
 
 if __name__ == "__main__":
     print()
