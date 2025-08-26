@@ -1,6 +1,6 @@
 from typing import Type, Callable, Union
 
-from app.domain.tools.utils.utils import convert_to_openai_tool
+from app.domain.tools.utils.utils import convert_to_openai_tool, convert_to_langchain_tool
 from pydantic import BaseModel, ConfigDict
 from sqlmodel import SQLModel
 
@@ -20,7 +20,6 @@ class Tool(BaseModel):
     exclude_keys: list[str] = ["id"]
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
-
 
     def run(self, **kwargs) -> ToolResult:
         missing_values = self.validate_input(**kwargs)
@@ -50,6 +49,19 @@ class Tool(BaseModel):
     @property
     def openai_tool_schema(self):
         schema = convert_to_openai_tool(self.model)
+        schema["function"]["name"] = self.name
+        if schema["function"]["parameters"].get("required"):
+            del schema["function"]["parameters"]["required"]
+        schema["function"]["parameters"]["properties"] = {
+            key: value for key, value in schema["function"]["parameters"]["properties"].items()
+            if key not in self.exclude_keys
+        }
+        return schema
+
+    @property
+    def langchain_tool_schema(self):
+        """Retorna o schema da tool no formato LangChain."""
+        schema = convert_to_langchain_tool(self.model)
         schema["function"]["name"] = self.name
         if schema["function"]["parameters"].get("required"):
             del schema["function"]["parameters"]["required"]

@@ -5,6 +5,7 @@ __pycache__/
 allowed_users.json
 # C extensions
 *.so
+analysis
 
 # Distribution / packaging
 .Python

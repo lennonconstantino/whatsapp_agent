@@ -1,11 +1,11 @@
-from typing import Literal, Optional
+from typing import Optional
 
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
 from app.domain.tools.base import Tool, ToolResult
 
-from app.feature.relationships.persistence.db import engine
+from app.feature.relationships.persistence.db import *
 from app.feature.relationships.persistence.models import Person, Interaction, Reminder
 
 # === Add tools ===
@@ -95,8 +95,10 @@ def query_people_function(**kwargs) -> ToolResult:
 
 query_people_tool = Tool(
     name="query_people",
+    description="Search for people in your contacts. You can search by name (first or last name) or by tags. Both parameters are optional - if neither is provided, all contacts will be returned.",
     model=QueryPeople,
     function=query_people_function,
+    validate_missing=False  # Desabilitar validação para campos opcionais
 )
 
 class QueryInteractions(BaseModel):

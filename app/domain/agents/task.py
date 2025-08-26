@@ -1,12 +1,11 @@
-from typing import Type, Callable, Optional
-
-from app.domain.agents.base import OpenAIAgent
-from app.domain.tools.base import Tool
-from app.domain.tools.report_tool import report_tool
+from typing import Type, Callable, Optional, List
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.domain.agents.base import Agent
+from app.domain.tools.base import Tool
+from app.domain.tools.report_tool import report_tool
 from app.domain.tools.utils.system_message_factory import StaticSystemMessageProvider, SystemMessageProvider
-from app.domain.tools.utils.utils import convert_to_openai_tool
+from app.domain.tools.utils.utils import convert_to_langchain_tool
 
 DEFAULT_SYSTEM_MESSAGE = """"""
 
@@ -17,13 +16,13 @@ class TaskAgent(BaseModel):
     name: str
     description: str
     arg_model: Type[BaseModel] = EmptyArgModel
-    access_roles: list[str] = ["all"]
+    access_roles: List[str] = Field(default_factory=lambda: ["all"])
 
-    create_context: Callable = None
-    create_user_context: Callable = None
-    tool_loader: Callable = None
+    create_context: Optional[Callable] = None
+    create_user_context: Optional[Callable] = None
+    tool_loader: Optional[Callable] = None
 
-    # Novo: Provedor de mensagem do sistema (mantém compatibilidade)
+    # Provedor de mensagem do sistema
     system_message_provider: SystemMessageProvider = Field(
         default_factory=lambda: StaticSystemMessageProvider(DEFAULT_SYSTEM_MESSAGE)
     )
@@ -31,9 +30,9 @@ class TaskAgent(BaseModel):
     # Mantido para compatibilidade (deprecated)
     system_message: Optional[str] = None
 
-    tools: list[Tool]
-    examples: list[dict] = None
-    routing_example: list[dict] = Field(default_factory=list)
+    tools: List[Tool]
+    examples: Optional[List[dict]] = None
+    routing_example: List[dict] = Field(default_factory=list)
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -45,10 +44,9 @@ class TaskAgent(BaseModel):
         
         super().__init__(**data)
 
-    def load_agent(self, **kwargs) -> OpenAIAgent:
-
+    def load_agent(self, **kwargs) -> Agent:
         input_kwargs = self.arg_model(**kwargs)
-        kwargs = input_kwargs.dict()
+        kwargs = input_kwargs.model_dump()
 
         context = self.create_context(**kwargs) if self.create_context else None
         user_context = self.create_user_context(**kwargs) if self.create_user_context else None
@@ -59,7 +57,7 @@ class TaskAgent(BaseModel):
         if report_tool not in self.tools:
             self.tools.append(report_tool)
 
-        return OpenAIAgent(
+        return Agent(
             tools=self.tools,
             context=context,
             user_context=user_context,
@@ -68,5 +66,13 @@ class TaskAgent(BaseModel):
         )
 
     @property
+    def langchain_tool_schema(self):
+        """Retorna o schema da tool no formato LangChain."""
+        return convert_to_langchain_tool(self.arg_model, name=self.name, description=self.description)
+
+    @property
     def openai_tool_schema(self):
+        """Mantido para compatibilidade - retorna o schema da tool no formato OpenAI."""
+        # Import local para evitar dependência circular
+        from app.domain.tools.utils.utils import convert_to_openai_tool
         return convert_to_openai_tool(self.arg_model, name=self.name, description=self.description)

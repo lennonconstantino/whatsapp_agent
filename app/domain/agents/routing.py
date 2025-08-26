@@ -1,8 +1,9 @@
-from openai import OpenAI
+from typing import List, Dict, Any
 import colorama
+from langchain.schema import SystemMessage, HumanMessage, AIMessage
 
+from app.infrastructure.llm import LLM, models
 from app.domain.agents.task import TaskAgent
-from app.domain.agents.utils import parse_function_args
 
 NOTES = """Important Notes:
 Always confirm the completion of the requested operation with the user.
@@ -13,29 +14,27 @@ class RoutingAgent:
 
     def __init__(
             self,
-            tools: list[TaskAgent] = None,
-            client: OpenAI = OpenAI(),
+            tools: List[TaskAgent] = None,
+            llm: Dict[str, Any] = models,
             system_message: str = "",
-            model_name: str = "gpt-3.5-turbo",
             max_steps: int = 5,
             verbose: bool = True,
-            prompt_extra: dict = None,
-            examples: list[dict] = None,
+            prompt_extra: Dict[str, Any] = None,
+            examples: List[dict] = None,
             context: str = None
     ):
-        self.tools = tools
-        self.client = client
-        self.model_name = model_name
+        self.tools = tools or []
+        self.llm = llm
         self.system_message = system_message
         self.memory = []
         self.step_history = []
         self.max_steps = max_steps
         self.verbose = verbose
-        self.prompt_extra = prompt_extra
+        self.prompt_extra = prompt_extra or {}
         self.examples = self.load_examples(examples)
         self.context = context or ""
 
-    def load_examples(self, examples: list[dict] = None):
+    def load_examples(self, examples: List[dict] = None):
         examples = examples or []
         for agent in self.tools:
             examples.extend(agent.routing_example)
@@ -47,43 +46,53 @@ class RoutingAgent:
             user_input_with_context = f"{context}\n---\n\nUser Message: {user_input}"
         else:
             user_input_with_context = user_input
+            
         self.to_console("START", f"Starting Routing Agent with Input:\n'''{user_input_with_context}'''")
+        
         partial_variables = {**self.prompt_extra, "context": context}
         system_message = self.system_message.format(**partial_variables)
 
-        # TODO: get user roles
+        # Converter mensagens para formato LangChain
         messages = [
-            {"role": "system", "content": system_message},
-            *self.examples,
-            {"role": "user", "content": user_input}
+            SystemMessage(content=system_message),
+            *[HumanMessage(content=ex["content"]) if ex["role"] == "user" else AIMessage(content=ex["content"]) for ex in self.examples],
+            HumanMessage(content=user_input)
         ]
 
-        tools = [tool.openai_tool_schema for tool in self.tools]
+        # Converter tools para formato LangChain
+        tools = [tool.langchain_tool_schema for tool in self.tools]
 
-        response = self.client.chat.completions.create(
-            model=self.model_name,
-            messages=messages,
-            tools=tools
-        )
-        self.step_history.append(response.choices[0].message)
-        self.to_console("RESPONSE", response.choices[0].message.content, color="blue")
-        tool_kwargs = parse_function_args(response)
-        if not getattr(response.choices[0].message, "tool_calls"):
+        # Bind tools e invocar
+        model = self.llm[LLM]
+        model_with_tools = model.bind_tools(tools)
+        response = model_with_tools.invoke(messages)
+        
+        self.step_history.append(response)
+        self.to_console("RESPONSE", response.content, color="blue")
+        
+        # Verificar se há tool calls
+        if not response.tool_calls:
             self.to_console("Tool Name", "None")
-            self.to_console("Tool Args", tool_kwargs)
-            return response.choices[0].message.content
-        tool_name = response.choices[0].message.tool_calls[0].function.name
+            self.to_console("Tool Args", "None")
+            return response.content
+            
+        # Extrair informações da tool call
+        tool_call = response.tool_calls[0]
+        tool_name = tool_call["name"]
+        tool_args = tool_call["args"]
+        
         self.to_console("Tool Name", tool_name)
-        self.to_console("Tool Args", tool_kwargs)
+        self.to_console("Tool Args", str(tool_args))
 
-        agent = self.prepare_agent(tool_name, tool_kwargs)
+        # Preparar e executar o agente
+        agent = self.prepare_agent(tool_name, tool_args)
         return agent.run(user_input)
 
-    def prepare_agent(self, tool_name, tool_kwargs):
+    def prepare_agent(self, tool_name: str, tool_kwargs: Dict[str, Any]):
         for agent in self.tools:
             if agent.name == tool_name:
                 input_kwargs = agent.arg_model.model_validate(tool_kwargs)
-                return agent.load_agent(**input_kwargs.dict())
+                return agent.load_agent(**input_kwargs.model_dump())
         raise ValueError(f"Agent {tool_name} not found")
 
     def to_console(self, tag: str, message: str, color: str = "green"):

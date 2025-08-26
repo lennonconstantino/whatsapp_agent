@@ -21,8 +21,8 @@ class WhereStatement(BaseModel):
 
 class QueryConfig(BaseModel):
     table_name: str
-    select_columns: list[str]
-    where: list[Union[WhereStatement, None]]
+    select_columns: list[str] = ["*"]  # Valor padrão para retornar todas as colunas
+    where: list[Union[WhereStatement, None]] = []  # Tornar opcional com valor padrão
 
 def query_data_function(query_config: QueryConfig) -> ToolResult:
     """Query the database via natural language."""
@@ -38,9 +38,11 @@ def query_data_function(query_config: QueryConfig) -> ToolResult:
 
 query_data_tool = Tool(
     name="query_data_tool",
+    description="Query financial data from the database. Required: table_name (expense, revenue, customer). Optional: select_columns (defaults to all columns), where conditions for filtering. Example: {'table_name': 'expense'} will return all expense records with all columns.",
     model=QueryConfig,
     function=query_data_function,
-    parse_model=True
+    parse_model=True,
+    validate_missing=False  # Desabilitar validação para campos opcionais
 )
 
 # === Helper ===
@@ -51,10 +53,16 @@ def sql_query_from_config(
 
     with Session(engine) as session:
         selection = []
-        for column in query_config.select_columns:
-            if column not in sql_model.__annotations__:
-                return f"Column {column} not found in model {sql_model.__name__}"
-            selection.append(getattr(sql_model, column))
+        
+        # Se select_columns é ["*"] ou vazio, selecionar todas as colunas
+        if not query_config.select_columns or query_config.select_columns == ["*"]:
+            selection = [sql_model]
+        else:
+            for column in query_config.select_columns:
+                if column not in sql_model.__annotations__:
+                    return f"Column {column} not found in model {sql_model.__name__}"
+                selection.append(getattr(sql_model, column))
+        
         statement = select(*selection)
         wheres = query_config.where
         if wheres:
