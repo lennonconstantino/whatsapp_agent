@@ -1,8 +1,7 @@
 from typing import Type, Callable, Optional, List
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.domain.agents.base import Agent
-from app.domain.tools.base import Tool
+from app.domain.agents.agent import Agent
 from app.domain.tools.report_tool import report_tool
 from app.domain.tools.utils.system_message_factory import StaticSystemMessageProvider, SystemMessageProvider
 from app.domain.tools.utils.utils import convert_to_langchain_tool
@@ -32,7 +31,6 @@ class TaskAgent(BaseModel):
     # Mantido para compatibilidade (deprecated)
     system_message: Optional[str] = None
 
-    #tools: List[Tool]
     tools: List[BaseTool]  # Mudança: agora aceita BaseTool do LangChain
     examples: Optional[List[dict]] = None
     routing_example: List[dict] = Field(default_factory=list)

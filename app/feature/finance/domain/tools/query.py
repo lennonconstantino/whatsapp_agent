@@ -3,7 +3,7 @@ from typing import Callable, Type, Union, Literal
 from pydantic import BaseModel
 from sqlmodel import Session, select, SQLModel
 
-from app.domain.tools.base import Tool, ToolResult
+from app.domain.tools.tool import Tool, ToolResult
 
 from app.feature.finance.persistence.models import *
 from app.feature.finance.persistence.db import engine
@@ -15,14 +15,14 @@ TABLES = {
 }
 
 class WhereStatement(BaseModel):
-    column: str = Field(description="Nome da coluna para filtrar")
-    operator: Literal["eq", "gt", "lt", "gte", "lte", "ne", "ct"] = Field(description="Operador de comparação")
-    value: str = Field(description="Valor para comparação")
+    column: str = Field(description="Name of the column to filter")
+    operator: Literal["eq", "gt", "lt", "gte", "lte", "ne", "ct"] = Field(description="Comparison operator")
+    value: str = Field(description="Value for comparison")
 
 class QueryConfig(BaseModel):
-    table_name: str = Field(description="Nome da tabela (expense, revenue, customer)")
-    select_columns: list[str] = Field(default=["*"], description="Colunas a selecionar")
-    where: list[Union[WhereStatement, None]] = Field(default=[], description="Condições de filtro")
+    table_name: str = Field(description="Table name (expense, revenue, customer)")
+    select_columns: list[str] = Field(default=["*"], description="Columns to select")
+    where: list[Union[WhereStatement, None]] = Field(default=[], description="Filter conditions")
 
 def sql_query_from_config(
         query_config: QueryConfig,
@@ -87,12 +87,12 @@ def query_data_function(query_config: QueryConfig) -> ToolResult:
 
 class QueryDataTool(Tool):
     name: str = "query_data_tool"
-    description: str = "Query financial data from the database. Required: table_name (expense, revenue, customer). Optional: select_columns (defaults to all columns), where conditions for filtering."
+    description: str = "Query financial data from the database. Required: table_name (expense, revenue, customer). Optional: select_columns (defaults to all columns), where conditions for filtering. Example: {'table_name': 'expense'} will return all expense records with all columns."
     args_schema: Type[BaseModel] = QueryConfig
     model: Type[BaseModel] = QueryConfig
     function: Callable = None
-    parse_model: bool = False  # Para usar model.model_validate()
-    validate_missing: bool = False  # Desabilitar validação
+    parse_model: bool = True        # TODO: Para usar model.model_validate()
+    validate_missing: bool = False  # TODO: Desabilitar validação
     
     def _run(self, **kwargs) -> ToolResult:
         return super()._run(**kwargs)
@@ -100,17 +100,10 @@ class QueryDataTool(Tool):
     async def _arun(self, **kwargs) -> ToolResult:
         return self._run(**kwargs)
     
-    def execute(self, **kwargs) -> ToolResult:
-        try:
-            query_config = QueryConfig.model_validate(kwargs)
-        except Exception as e:
-            return ToolResult(content=f"Invalid parameters: {str(e)}", success=False)
-        
-        # Manter lógica existente da função query_data_function
+    def execute(self, input_data: QueryConfig) -> ToolResult:
+        query_config = input_data
         if query_config.table_name not in TABLES:
             return ToolResult(content=f"Table name {query_config.table_name} not found in database models", success=False)
-        
         return query_data_function(query_config)        
 
-# Substituir a instância antiga
 query_data_tool = QueryDataTool()

@@ -11,14 +11,12 @@ class ToolResult(BaseModel):
     content: str
     success: bool
 
-
 class Tool(BaseTool):
     name: str
     description: str = ""
     args_schema: Optional[Type[BaseModel]] = None
-    #
     model: Union[Type[BaseModel], Type[SQLModel], None]
-    function: Callable
+    function: Callable = None
     validate_missing: bool = True
     parse_model: bool = False
     exclude_keys: list[str] = ["id"]
@@ -48,13 +46,7 @@ class Tool(BaseTool):
     def validate_input(self, **kwargs):
         if not self.validate_missing or not self.model:
             return []
-        
-        '''
-        model_keys = set(self.model.__annotations__.keys()) - set(self.exclude_keys)
-        input_keys = set(kwargs.keys())
-        missing_values = model_keys - input_keys
-        return list(missing_values)        
-        '''    
+         
         # Obter schema do modelo com informações sobre campos obrigatórios
         model_schema = self.model.model_json_schema()
         required_fields = set(model_schema.get("required", []))
@@ -95,6 +87,6 @@ class Tool(BaseTool):
     
     @abstractmethod
     def execute(self, input_data: Any) -> Any:
-        """Método abstrato que deve ser implementado pelas classes filhas"""
+        """Abstract method that must be implemented by child classes"""
         pass
 

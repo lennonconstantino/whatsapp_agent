@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, ToolMessage
 
 from app.infrastructure.llm import LLM, models
-from app.domain.tools.base import Tool, ToolResult
+from app.domain.tools.tool import Tool, ToolResult
 
 class StepResult(BaseModel):
     event: str

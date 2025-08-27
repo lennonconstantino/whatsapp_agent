@@ -2,7 +2,7 @@ from typing import Callable, Optional, Type
 from pydantic import BaseModel, Field
 from sqlmodel import Session, select
 
-from app.domain.tools.base import Tool, ToolResult
+from app.domain.tools.tool import Tool, ToolResult
 from app.feature.relationships.persistence.db import *
 from app.feature.relationships.persistence.models import Person, Interaction, Reminder
 
@@ -22,8 +22,6 @@ class AddPersonTool(Tool):
     description: str = "Add a new person to your contacts database"
     args_schema: Type[BaseModel] = AddPerson
     model: Type[BaseModel] = AddPerson
-    function: Callable = None
-    parse_model: bool = True 
     
     def _run(self, **data) -> ToolResult:
         return super()._run(**data)
@@ -53,8 +51,6 @@ class LogInteractionTool(Tool):
     description: str = "Log an interaction with a person in your contacts"
     args_schema: Type[BaseModel] = LogInteraction
     model: Type[BaseModel] = LogInteraction
-    function: Callable = None
-    parse_model: bool = True 
     
     def _run(self, **data) -> ToolResult:
         return super()._run(**data)
@@ -109,8 +105,6 @@ class QueryPeopleTool(Tool):
     description: str = "Search for people in your contacts. You can search by name (first or last name) or by tags. Both parameters are optional - if neither is provided, all contacts will be returned."
     args_schema: Type[BaseModel] = QueryPeople
     model: Type[BaseModel] = QueryPeople
-    function: Callable = None
-    parse_model: bool = False # TODO
     
     def _run(self, **kwargs) -> ToolResult:
         return super()._run(**kwargs)
@@ -140,8 +134,6 @@ class QueryInteractionsTool(Tool):
     description: str = "Search for interaction history with optional filters"
     args_schema: Type[BaseModel] = QueryInteractions
     model: Type[BaseModel] = QueryInteractions
-    function: Callable = None
-    parse_model: bool = True 
     
     def _run(self, **kwargs) -> ToolResult:
         return super()._run(**kwargs)
@@ -169,8 +161,6 @@ class UpcomingRemindersTool(Tool):
     description: str = "Get reminders due in the next specified number of days (default: 7 days)"
     args_schema: Type[BaseModel] = UpcomingReminders
     model: Type[BaseModel] = UpcomingReminders
-    function: Callable = None
-    parse_model: bool = True 
     
     def _run(self, **kwargs) -> ToolResult:
         return super()._run(**kwargs)

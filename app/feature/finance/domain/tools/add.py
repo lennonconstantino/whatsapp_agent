@@ -1,8 +1,8 @@
-from typing import Callable, Type
+from typing import Type
 from pydantic import BaseModel
 from sqlmodel import Session
 
-from app.domain.tools.base import Tool, ToolResult
+from app.domain.tools.tool import Tool, ToolResult
 
 from app.feature.finance.persistence.models import *
 from app.feature.finance.persistence.db import engine
@@ -23,8 +23,6 @@ class AddExpenseTool(Tool):
     description: str = "Add an expense to the database. The tax rate is 0.19. User provides net amount, gross amount is calculated."
     args_schema: Type[BaseModel] = Expense
     model: Type[BaseModel] = Expense
-    function: Callable = None
-    parse_model: bool = True 
 
     def _run(self, **kwargs) -> ToolResult:
         return super()._run(**kwargs)
@@ -41,8 +39,6 @@ class AddRevenueTool(Tool):
     description: str = "Add a revenue entry to the database. The tax rate is 0.19. User provides gross_amount, net_amount is calculated."
     args_schema: Type[BaseModel] = Revenue
     model: Type[BaseModel] = Revenue
-    function: Callable = None
-    parse_model: bool = True 
     
     def _run(self, **kwargs) -> ToolResult:
         return super()._run(**kwargs)
@@ -59,8 +55,6 @@ class AddCustomerTool(Tool):
     description: str = "Add a customer to the database"
     args_schema: Type[BaseModel] = Customer
     model: Type[BaseModel] = Customer
-    function: Callable = None
-    parse_model: bool = True 
     
     def _run(self, **kwargs) -> ToolResult:
         return super()._run(**kwargs)
