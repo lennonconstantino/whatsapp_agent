@@ -43,7 +43,6 @@ def convert_to_langchain_tool(
         }
     }
 
-
 def convert_pydantic_to_openai_function(
         model: Type[BaseModel],
         *,

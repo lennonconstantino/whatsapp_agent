@@ -1,12 +1,9 @@
 from typing import List, Dict, Any
 import colorama
-#from langchain.schema import SystemMessage, HumanMessage, AIMessage
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
 from app.infrastructure.llm import LLM, models
 from app.domain.agents.task import TaskAgent
-
-from langchain_core.tools import tool
 
 NOTES = """Important Notes:
 Always confirm the completion of the requested operation with the user.
@@ -64,19 +61,11 @@ class RoutingAgent:
 
         # Converter tools para formato LangChain
         tools = [tool.langchain_tool_schema for tool in self.tools]
-        # tools = []
-        # for agent in self.tools:
-        #     if hasattr(agent, 'tools'):
-        #         for tool in agent.tools:
-        #             #tools.append(tool)
-        #             if hasattr(tool, 'function'):
-        #                 tools.append(tool)
 
         # Bind tools e invocar
         model = self.llm[LLM]
         model_with_tools = model.bind_tools(tools)
         response = model_with_tools.invoke(messages)
-        #response = model.invoke_with_tool_calling(messages, tools=tools)
         
         self.step_history.append(response)
         self.to_console("RESPONSE", response.content, color="blue")

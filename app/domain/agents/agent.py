@@ -4,6 +4,7 @@ from colorama import Fore
 from pydantic import BaseModel
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, ToolMessage
 
+from app.domain.agents.utils import parse_function_args, run_tool_from_response
 from app.infrastructure.llm import LLM, models
 from app.domain.tools.tool import Tool, ToolResult
 
@@ -123,7 +124,7 @@ class Agent:
         if not response.tool_calls:
             msg = response.content
             step_result = StepResult(
-                event="Error", 
+                event="error", 
                 content=f"No tool calls were returned.\nMessage: {msg}", 
                 success=False
             )
@@ -132,12 +133,17 @@ class Agent:
         # Extrair informações da tool
         tool_call = response.tool_calls[0]
         tool_name = tool_call["name"]
-        tool_args = tool_call["args"]
+        tool_kwargs = parse_function_args(response)
 
-        # Executar a tool
-        self.to_console("Tool Call", f"Name: {tool_name}\nArgs: {tool_args}\nMessage: {response.content}", "magenta")
-        tool_result = self._run_tool_langchain(tool_call, self.tools)
-        tool_result_msg = self.tool_call_message_langchain(tool_call, tool_result)
+        self.to_console("Tool Call", f"Name: {tool_name}\nArgs: {tool_kwargs}\nMessage: {response.content}", "magenta")
+        tool_result = run_tool_from_response(response, tools=self.tools)
+        
+        # Extrair informações do response para criar a mensagem de tool
+        tool_call_info = {
+            "id": response.tool_calls[0]["id"],
+            "name": response.tool_calls[0]["name"]
+        }
+        tool_result_msg = self.tool_call_message_langchain(tool_call_info, tool_result)
         self.step_history.append(tool_result_msg)
 
         # Verificar se é report_tool para finalizar
@@ -164,32 +170,6 @@ class Agent:
             )
 
         return step_result
-
-    def _run_tool_langchain(self, tool_call: dict, tools: List[Tool]) -> ToolResult:
-        """Executa uma tool call no formato LangChain."""
-        tool_name = tool_call["name"]
-        tool_args = tool_call["args"]
-        
-        # Encontrar a tool
-        tool = None
-        for t in tools:
-            if t.name == tool_name:
-                tool = t
-                break
-        
-        if not tool:
-            return ToolResult(
-                content=f"Tool '{tool_name}' not found",
-                success=False
-            )
-        
-        try:
-            return tool._run(**tool_args)
-        except Exception as e:
-            return ToolResult(
-                content=f"Error running tool '{tool_name}': {str(e)}",
-                success=False
-            )
 
     def tool_call_message_langchain(self, tool_call: dict, tool_result: ToolResult):
         """Cria mensagem de resposta da tool para LangChain."""
