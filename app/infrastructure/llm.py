@@ -68,7 +68,7 @@ for config in MODEL_CONFIGS:
         temperature=config.get("temperature")
     )
 
-LLM = "gemini_1.5_flash"
+LLM = "3.5-turbo"
 
 if __name__ == "__main__":
     print()
