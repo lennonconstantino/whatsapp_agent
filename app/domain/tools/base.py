@@ -48,9 +48,24 @@ class Tool(BaseTool):
     def validate_input(self, **kwargs):
         if not self.validate_missing or not self.model:
             return []
+        
+        '''
         model_keys = set(self.model.__annotations__.keys()) - set(self.exclude_keys)
         input_keys = set(kwargs.keys())
         missing_values = model_keys - input_keys
+        return list(missing_values)        
+        '''    
+        # Obter schema do modelo com informações sobre campos obrigatórios
+        model_schema = self.model.model_json_schema()
+        required_fields = set(model_schema.get("required", []))
+        
+        # Campos que realmente são obrigatórios (sem valor padrão)
+        mandatory_fields = required_fields - set(self.exclude_keys)
+        
+        # Verificar campos obrigatórios
+        input_keys = set(kwargs.keys())
+        missing_values = mandatory_fields - input_keys
+        
         return list(missing_values)
 
     @property

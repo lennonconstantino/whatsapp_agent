@@ -110,7 +110,7 @@ class QueryPeopleTool(Tool):
     args_schema: Type[BaseModel] = QueryPeople
     model: Type[BaseModel] = QueryPeople
     function: Callable = None
-    parse_model: bool = True 
+    parse_model: bool = False # TODO
     
     def _run(self, **kwargs) -> ToolResult:
         return super()._run(**kwargs)
