@@ -30,15 +30,25 @@ def convert_to_langchain_tool(
     """Converts a Pydantic model to a LangChain tool schema."""
     schema = model.model_json_schema() if hasattr(model, "model_json_schema") else model.schema()
     
+    # Resolver referências para compatibilidade com Gemini
+    try:
+        resolved_schema = dereference_refs(schema)
+        # Remover definições que podem causar problemas
+        resolved_schema.pop("definitions", None)
+        resolved_schema.pop("$defs", None)
+    except Exception:
+        # Se falhar, usar schema original
+        resolved_schema = schema
+    
     return {
         "type": "function",
         "function": {
             "name": name or model.__name__,
-            "description": description or schema.get("description", ""),
+            "description": description or resolved_schema.get("description", ""),
             "parameters": {
                 "type": "object",
-                "properties": schema.get("properties", {}),
-                "required": schema.get("required", []),
+                "properties": resolved_schema.get("properties", {}),
+                "required": resolved_schema.get("required", []),
             }
         }
     }

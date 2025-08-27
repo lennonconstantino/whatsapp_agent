@@ -16,10 +16,10 @@ _PROVIDER_MAP = {
 
 MODEL_CONFIGS = [
     {
-        "key_name": "gemini_1.5_flash",
+        "key_name": "g25flash",
         "provider" : "google",
-        "model_name": "gemini-1.5-flash",
-        "temprature": 0.7,
+        "model_name": "gemini-2.5-flash",
+        "temprature": 0,
     },
     {
         "key_name":"3.5-turbo",
@@ -47,6 +47,18 @@ def _create_chat_model(model_name: str, provider: str, temperature: float | None
     if temperature is not None:
         params["temperature"] = temperature
 
+    if provider == "google":
+        # Importar as classes necessárias para safety_settings
+        from langchain_google_genai import HarmCategory, HarmBlockThreshold
+        
+        safety_settings = {
+            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+        }
+        params["safety_settings"] = safety_settings
+
     return model_class(**params)
 
 models = {}
@@ -58,7 +70,7 @@ for config in MODEL_CONFIGS:
         temperature=config.get("temperature")
     )
 
-LLM = "3.5-turbo"
+LLM = "g25flash"
 
 if __name__ == "__main__":
     print()
