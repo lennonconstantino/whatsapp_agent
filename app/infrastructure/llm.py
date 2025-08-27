@@ -47,16 +47,6 @@ def _create_chat_model(model_name: str, provider: str, temperature: float | None
     if temperature is not None:
         params["temperature"] = temperature
 
-    # Configurações específicas por provedor
-    # if provider == "google":
-    #     params.update({
-    #         "convert_system_message_to_human": True,  # Importante para Gemini
-    #         # "tools_available": True  # Removi pois não é um parâmetro válido
-    #     })
-    #     # Se temperature não foi especificada, usar 0.7 como padrão para Google
-    #     if temperature is None:
-    #         params["temperature"] = 0.7
-
     return model_class(**params)
 
 models = {}
