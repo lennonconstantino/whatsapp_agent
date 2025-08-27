@@ -306,6 +306,7 @@ flowchart LR
 
   subgraph ExternalLLM
     openai_chat[OpenAI Chat Completions]
+    gemini_chat[Google Gemini Chat]
   end
 
   message_service --> finance_agent
@@ -326,6 +327,7 @@ flowchart LR
 
   models --> db
   finance_agent --> openai_chat
+  finance_agent --> gemini_chat
 ```
 
 ## 🧪 Testes e Dados Mock
@@ -373,8 +375,9 @@ python -m app.feature.finance.persistence.mock_data --db-name "meu_banco.db" --d
 ### Verificações Regulares
 - [ ] **Banco de dados**: Verificar integridade e tamanho
 - [ ] **Logs**: Monitorar erros e performance
-- [ ] **Tokens**: Renovar tokens da OpenAI e Meta API
+- [ ] **Tokens**: Renovar tokens da OpenAI, Google e Meta API
 - [ ] **Backups**: Fazer backup regular do `finance_app.db`
+- [ ] **Compatibilidade LLM**: Testar com diferentes modelos (OpenAI/Gemini)
 
 ### Atualizações
 - [ ] **Dependências**: Manter `requirements.txt` atualizado
@@ -385,7 +388,8 @@ python -m app.feature.finance.persistence.mock_data --db-name "meu_banco.db" --d
 ---
 
 **Última atualização**: Janeiro 2025  
-**Versão do documento**: 2.0  
-**Status**: Implementado e funcional
+**Versão do documento**: 2.1  
+**Status**: Implementado e funcional  
+**Compatibilidade**: OpenAI GPT + Google Gemini (limitado)
 
 

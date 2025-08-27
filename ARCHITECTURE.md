@@ -24,6 +24,7 @@ O WhatsApp Agent é um sistema de agentes inteligentes baseado em arquitetura de
 - **Tool**: Ferramentas de execução
 - **Cooperação**: Agentes trabalham em conjunto
 - **LangChain Integration**: Padronização com LangChain OpenAI para melhor integração
+- **Tool Consolidation**: Sistema de report_tool para consolidação automática de resultados
 
 ### **4. Event-Driven Architecture**
 - **Webhooks**: Recebimento de mensagens WhatsApp
@@ -176,12 +177,12 @@ sequenceDiagram
 ```
 app/domain/
 ├── agents/           # Agentes base e abstrações
-│   ├── base.py      # OpenAIAgent - Agente base com OpenAI
+│   ├── agent.py     # Agent - Agente base com LangChain
 │   ├── routing.py   # RoutingAgent - Orquestrador de intenções
 │   ├── task.py      # TaskAgent - Executor de tarefas
 │   └── utils.py     # Utilitários para agentes
 ├── tools/            # Ferramentas base
-│   ├── base.py      # Tool - Classe base para ferramentas
+│   ├── tool.py      # Tool - Classe base para ferramentas
 │   ├── report_tool.py # Ferramenta de relatório padrão
 │   └── utils/       # Utilitários para ferramentas
 ├── message_service.py # Serviço de mensagens
@@ -382,9 +383,11 @@ flowchart TD
 - **Processamento**: Background tasks para não bloquear
 
 ### **2. AI Integration**
-- **OpenAI GPT**: Roteamento de intenções e execução de tarefas
+- **OpenAI GPT**: Roteamento de intenções e execução de tarefas (completo)
+- **Google Gemini**: Suporte limitado com limitações de tool calling
 - **Whisper**: Transcrição de áudio para processamento
 - **Function Calling**: Execução estruturada de ferramentas
+- **Schema Resolution**: Resolução automática de referências JSON para compatibilidade
 
 ### **3. Database Integration**
 - **SQLModel**: ORM moderno com validação Pydantic
@@ -624,6 +627,9 @@ graph TB
 - ✅ Migração para LangChain OpenAI
 - ✅ Correção de validações de ferramentas
 - ✅ Isolamento de bancos de dados
+- ✅ Suporte a Google Gemini (com limitações)
+- ✅ Sistema de consolidação report_tool
+- ✅ Resolução de schemas JSON para compatibilidade
 
 ### **Fase 2: Escalabilidade**
 - [ ] Migração para PostgreSQL/MySQL
@@ -649,4 +655,4 @@ graph TB
 **Versão**: 1.0  
 **Última atualização**: Janeiro 2025  
 **Status**: Implementado e funcional  
-**Arquitetura**: Clean Domain + Multi-Agent System
+**Arquitetura**: Clean Domain + Multi-Agent System + Tool Consolidation

@@ -19,8 +19,8 @@ Sistema de agentes inteligentes para WhatsApp que permite gerenciar finanças pe
 ## 🛠️ Tecnologias
 
 - **Backend**: FastAPI + Python 3.12
-- **Banco de Dados**: SQLite com SQLModel
-- **IA/LLM**: OpenAI GPT + LangChain (Whisper para transcrição de áudio)
+- **Banco de Dados**: SQLite com SQLModel (isolamento por feature)
+- **IA/LLM**: OpenAI GPT + Google Gemini + LangChain (Whisper para transcrição de áudio)
 - **Integração**: WhatsApp Business API via Meta Graph
 - **Deploy**: Uvicorn + Ngrok para desenvolvimento
 
@@ -118,6 +118,11 @@ python -m app.feature.finance.persistence.mock_data
 python -m app.feature.relationships.persistence.mock_data
 ```
 
+### 6. Testar os modulos sem a necessidade de rodar o servidor
+```bash
+python -m app.domain.message_service
+```
+
 ## 📱 Como Usar
 
 ### **Gestão Financeira**
@@ -209,6 +214,7 @@ python -m pytest tests/e2e/
 - **"Agent not found"**: Verificar se o agente está registrado no RoutingAgent
 - **"Missing values"**: Verificar se os modelos têm arg_model configurado e se `validate_missing=False` está configurado para ferramentas de query
 - **"Tool call validation error"**: Verificar se os exemplos de uso estão completos com todas as mensagens de tool necessárias
+- **"Reference '#/$defs/WhereStatement' not found"**: Problema de compatibilidade com Google Gemini - usar OpenAI ou corrigir schemas
 - **Webhook não funciona**: Verificar Ngrok e VERIFICATION_TOKEN
 - **"Database tables in wrong DB"**: Executar inicialização de bancos separadamente
 
@@ -229,6 +235,9 @@ python -m pytest tests/e2e/
 - [x] Padronização para LangChain OpenAI
 - [x] Correção de validações de ferramentas
 - [x] Isolamento de bancos de dados por feature
+- [x] Suporte a Google Gemini (com limitações de tool calling)
+- [x] Correção de safety_settings para modelos Google
+- [x] Resolução de schemas JSON para compatibilidade
 - [ ] Migração para PostgreSQL/MySQL
 - [ ] Implementação de cache Redis
 - [ ] Load balancing e auto-scaling

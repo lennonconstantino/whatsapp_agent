@@ -182,8 +182,9 @@ app/feature/relationships/
 
 ### **Dependências**
 - **Core**: SQLModel, Pydantic, FastAPI
-- **IA**: OpenAI GPT + LangChain para roteamento
+- **IA**: OpenAI GPT + Google Gemini + LangChain para roteamento
 - **Integração**: WhatsApp Business API via Meta Graph
+- **Tool Consolidation**: Sistema report_tool para consolidação automática
 
 ## 📊 Diagramas
 
@@ -254,6 +255,7 @@ flowchart LR
 
   subgraph ExternalLLM
     openai_chat[OpenAI Chat Completions]
+    gemini_chat[Google Gemini Chat]
   end
 
   message_service --> relationships_agent
@@ -278,6 +280,7 @@ flowchart LR
 
   models --> db
   relationships_agent --> openai_chat
+  relationships_agent --> gemini_chat
 ```
 
 ## 🔒 Privacidade e Ética
@@ -356,6 +359,10 @@ python -m app.feature.relationships.persistence.mock_data --db-name "meu_banco.d
 **Causa**: Tentativa de referenciar pessoa inexistente
 **Solução**: Cadastrar a pessoa primeiro ou verificar o ID correto
 
+#### "Reference '#/$defs/WhereStatement' not found"
+**Causa**: Problema de compatibilidade com Google Gemini
+**Solução**: Usar OpenAI ou verificar resolução de schemas JSON
+
 ### **Dicas de Debug**
 - **Verificar logs** do FastAPI para detalhes de erro
 - **Validar dados** de entrada com os modelos Pydantic
@@ -381,9 +388,10 @@ python -m app.feature.relationships.persistence.mock_data --db-name "meu_banco.d
 ### **Verificações Regulares**
 - [ ] **Banco de dados**: Verificar integridade e tamanho
 - [ ] **Logs**: Monitorar erros e performance
-- [ ] **Tokens**: Renovar tokens da OpenAI e Meta API
+- [ ] **Tokens**: Renovar tokens da OpenAI, Google e Meta API
 - [ ] **Backups**: Fazer backup regular do `relationships_app.db`
 - [ ] **Validações**: Verificar se ferramentas de query têm `validate_missing=False`
+- [ ] **Compatibilidade LLM**: Testar com diferentes modelos (OpenAI/Gemini)
 
 ### **Atualizações**
 - [ ] **Dependências**: Manter `requirements.txt` atualizado
@@ -400,8 +408,9 @@ python -m app.feature.relationships.persistence.mock_data --db-name "meu_banco.d
 ---
 
 **Última atualização**: Janeiro 2025  
-**Versão do documento**: 2.0  
+**Versão do documento**: 2.1  
 **Status**: Implementado e funcional  
-**Feature**: Assistente Social Pessoal para Relacionamentos
+**Feature**: Assistente Social Pessoal para Relacionamentos  
+**Compatibilidade**: OpenAI GPT + Google Gemini (limitado)
 
 
