@@ -63,14 +63,14 @@ class RoutingAgent:
         ]
 
         # Converter tools para formato LangChain
-        #tools = [tool.langchain_tool_schema for tool in self.tools]
-        tools = []
-        for agent in self.tools:
-            if hasattr(agent, 'tools'):
-                for tool in agent.tools:
-                    #tools.append(tool)
-                    if hasattr(tool, 'function'):
-                        tools.append(tool)
+        tools = [tool.langchain_tool_schema for tool in self.tools]
+        # tools = []
+        # for agent in self.tools:
+        #     if hasattr(agent, 'tools'):
+        #         for tool in agent.tools:
+        #             #tools.append(tool)
+        #             if hasattr(tool, 'function'):
+        #                 tools.append(tool)
 
         # Bind tools e invocar
         model = self.llm[LLM]

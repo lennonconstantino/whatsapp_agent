@@ -1,4 +1,5 @@
-from typing import Optional, Type, Callable, Union
+from abc import abstractmethod
+from typing import Any, Optional, Type, Callable, Union
 
 from app.domain.tools.utils.utils import convert_to_openai_tool, convert_to_langchain_tool
 from pydantic import BaseModel, ConfigDict
@@ -35,10 +36,10 @@ class Tool(BaseTool):
                 input_ = self.model.model_validate(kwargs)
             else:
                 input_ = self.model(**kwargs)
-            result = self.function(input_)
-
+            result = self.execute(input_)
         else:
-            result = self.function(**kwargs)
+            result = self.execute(**kwargs)
+
         return ToolResult(content=str(result), success=True)
     
     def _arun(self, **kwargs) -> ToolResult:
@@ -76,6 +77,11 @@ class Tool(BaseTool):
             if key not in self.exclude_keys
         }
         return schema
+    
+    @abstractmethod
+    def execute(self, input_data: Any) -> Any:
+        """Método abstrato que deve ser implementado pelas classes filhas"""
+        pass
 
 
 class ReportSchema(BaseModel):
@@ -93,3 +99,27 @@ def report_function(report: ReportSchema) -> str:
 #     validate_missing=False,
 #     parse_model=True
 # )
+
+class ReportTool(Tool):
+    name: str = "report_tool"
+    description: str = "Report the results of your work or answer user questions"
+    args_schema: Type[BaseModel] = ReportSchema
+    model: Type[BaseModel] = ReportSchema
+    function: Callable = None
+    parse_model: bool = True 
+    
+    def _run(self, **kwargs) -> ToolResult:
+        return super()._run(**kwargs)
+    
+    async def _arun(self, **kwargs) -> ToolResult:
+        return self._run(**kwargs)
+    
+    def execute(self, **kwargs) -> str:
+        if hasattr(self, 'parse_model') and self.parse_model:
+            report = ReportSchema.model_validate(kwargs)
+        else:
+            report = ReportSchema(**kwargs)
+        
+        return report_function(report)
+
+report_tool = ReportTool()

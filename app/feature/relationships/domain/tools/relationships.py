@@ -26,15 +26,19 @@ class AddPersonTool(Tool):
     parse_model: bool = True 
     
     def _run(self, **data) -> ToolResult:
+        return super()._run(**data)
+    
+    async def _arun(self, **data) -> ToolResult:
+        return self._run(**data)
+    
+    def execute(self, **data) -> ToolResult:
         with Session(engine) as session:
             person = Person.model_validate(data)
             session.add(person)
             session.commit()
             session.refresh(person)
             return ToolResult(content=f"Added person {person.first_name} {person.last_name} (id={person.id})", success=True)
-    
-    def _arun(self, **data) -> ToolResult:
-        return self._run(**data)
+
 
 class LogInteraction(BaseModel):
     person_id: int = Field(description="ID da pessoa para registrar a interação")
@@ -53,15 +57,18 @@ class LogInteractionTool(Tool):
     parse_model: bool = True 
     
     def _run(self, **data) -> ToolResult:
+        return super()._run(**data)
+    
+    async def _arun(self, **data) -> ToolResult:
+        return self._run(**data)
+    
+    def execute(self, **data) -> ToolResult:
         with Session(engine) as session:
             interaction = Interaction.model_validate(data)
             session.add(interaction)
             session.commit()
             session.refresh(interaction)
-            return ToolResult(content=f"Logged interaction id={interaction.id} for person_id={interaction.person_id}", success=True)
-    
-    def _arun(self, **data) -> ToolResult:
-        return self._run(**data)
+            return ToolResult(content=f"Logged interaction id={interaction.id} for person_id={interaction.person_id}", success=True)        
 
 class ScheduleReminder(BaseModel):
     person_id: int = Field(description="ID da pessoa para agendar o lembrete")
@@ -78,15 +85,18 @@ class ScheduleReminderTool(Tool):
     parse_model: bool = True 
     
     def _run(self, **data) -> ToolResult:
+        return super()._run(**data)
+    
+    async def _arun(self, **data) -> ToolResult:
+        return self._run(**data)
+
+    def execute(self, **data) -> ToolResult:
         with Session(engine) as session:
             reminder = Reminder.model_validate(data)
             session.add(reminder)
             session.commit()
             session.refresh(reminder)
             return ToolResult(content=f"Scheduled reminder id={reminder.id} for person_id={reminder.person_id}", success=True)
-    
-    def _arun(self, **data) -> ToolResult:
-        return self._run(**data)
 
 # === Query tools ===
 
@@ -103,6 +113,12 @@ class QueryPeopleTool(Tool):
     parse_model: bool = True 
     
     def _run(self, **kwargs) -> ToolResult:
+        return super()._run(**kwargs)
+    
+    async def _arun(self, **kwargs) -> ToolResult:
+        return self._run(**kwargs)
+    
+    def execute(self, **kwargs) -> ToolResult:
         name_contains = kwargs.get("name_contains")
         tag_contains = kwargs.get("tag_contains")
         with Session(engine) as session:
@@ -112,10 +128,7 @@ class QueryPeopleTool(Tool):
             if tag_contains:
                 statement = statement.where(Person.tags.contains(tag_contains))
             result = session.exec(statement).all()
-            return ToolResult(content=str([repr(r) for r in result]), success=True)
-    
-    def _arun(self, **kwargs) -> ToolResult:
-        return self._run(**kwargs)
+            return ToolResult(content=str([repr(r) for r in result]), success=True)        
 
 class QueryInteractions(BaseModel):
     person_id: Optional[int] = Field(default=None, description="ID da pessoa para filtrar")
@@ -131,6 +144,12 @@ class QueryInteractionsTool(Tool):
     parse_model: bool = True 
     
     def _run(self, **kwargs) -> ToolResult:
+        return super()._run(**kwargs)
+    
+    async def _arun(self, **kwargs) -> ToolResult:
+        return self._run(**kwargs)
+    
+    def execute(self, **kwargs) -> ToolResult:
         with Session(engine) as session:
             statement = select(Interaction)
             if kwargs.get("person_id") is not None:
@@ -140,10 +159,7 @@ class QueryInteractionsTool(Tool):
             if kwargs.get("type"):
                 statement = statement.where(Interaction.type == kwargs["type"])
             result = session.exec(statement).all()
-            return ToolResult(content=str([repr(r) for r in result]), success=True)
-    
-    def _arun(self, **kwargs) -> ToolResult:
-        return self._run(**kwargs)
+            return ToolResult(content=str([repr(r) for r in result]), success=True)        
 
 class UpcomingReminders(BaseModel):
     days_ahead: int = Field(default=7, description="Número de dias à frente para buscar lembretes")
@@ -157,15 +173,18 @@ class UpcomingRemindersTool(Tool):
     parse_model: bool = True 
     
     def _run(self, **kwargs) -> ToolResult:
+        return super()._run(**kwargs)
+    
+    async def _arun(self, **kwargs) -> ToolResult:
+        return self._run(**kwargs)
+    
+    def execute(self, **kwargs) -> ToolResult:
         from datetime import datetime, timedelta
         horizon = datetime.utcnow() + timedelta(days=kwargs.get("days_ahead", 7))
         with Session(engine) as session:
             statement = select(Reminder).where(Reminder.due_date <= horizon, Reminder.status == "open")
             result = session.exec(statement).all()
             return ToolResult(content=str([repr(r) for r in result]), success=True)
-    
-    def _arun(self, **kwargs) -> ToolResult:
-        return self._run(**kwargs)
 
 # === Instâncias das ferramentas ===
 add_person_tool = AddPersonTool()

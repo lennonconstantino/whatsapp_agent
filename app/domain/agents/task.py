@@ -71,16 +71,8 @@ class TaskAgent(BaseModel):
     @property
     def langchain_tool_schema(self):
         """Retorna o schema da tool no formato LangChain."""
-        #return convert_to_langchain_tool(self.arg_model, name=self.name, description=self.description)
+        return convert_to_langchain_tool(self.arg_model, name=self.name, description=self.description)
         #return self.tools  # Agora retorna diretamente as ferramentas LangChain
-        tools = []
-        for agent in self.tools:
-            if hasattr(agent, 'tools'):
-                for tool in agent.tools:
-                    tools.append(tool)
-                    #if hasattr(tool, 'function'):
-                    #    tools.append(tool)
-        return tools
 
     @property
     def openai_tool_schema(self):

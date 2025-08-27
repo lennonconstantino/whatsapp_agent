@@ -31,11 +31,16 @@ def convert_to_langchain_tool(
     schema = model.model_json_schema() if hasattr(model, "model_json_schema") else model.schema()
     
     return {
-        "type": "object",
-        "properties": schema.get("properties", {}),
-        "required": schema.get("required", []),
-        "name": name,
-        "description": description
+        "type": "function",
+        "function": {
+            "name": name or model.__name__,
+            "description": description or schema.get("description", ""),
+            "parameters": {
+                "type": "object",
+                "properties": schema.get("properties", {}),
+                "required": schema.get("required", []),
+            }
+        }
     }
 
 
