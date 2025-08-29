@@ -89,7 +89,7 @@ for config in MODEL_CONFIGS:
         temperature=config.get("temperature")
     )
 
-LLM = "o4"
+LLM = "gpt_4o"
 
 if __name__ == "__main__":
     print()

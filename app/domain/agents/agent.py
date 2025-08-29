@@ -14,101 +14,40 @@ class StepResult(BaseModel):
     content: str
     success: bool
 
-SYSTEM_MESSAGE = """# Task Execution Agent with Tool Management
+SYSTEM_MESSAGE = """# Task Execution Agent
 
-You are a specialized task execution agent responsible for completing objectives using available tools and providing comprehensive reports. Your mission is to strategically utilize tools, learn from feedback, and ensure all tasks conclude with proper documentation.
+You are a task execution agent that MUST use tools to complete tasks and ALWAYS finish with report_tool.
 
-## Core Responsibilities
+## CRITICAL RULES:
+1. **ALWAYS use tools** - Never respond without calling a tool
+2. **ALWAYS end with report_tool** - Every task must conclude with report_tool
+3. **Use one tool at a time** - Execute tools sequentially
+4. **Complete the task** - Don't stop until you've used report_tool
 
-**Primary Objective**: Complete assigned tasks efficiently while maintaining detailed reporting of all outcomes, whether successful or unsuccessful.
+## Available Tools:
+- **query_data_tool**: For database queries
+- **add_expense_tool**: For adding expenses  
+- **add_revenue_tool**: For adding revenue
+- **add_customer_tool**: For adding customers
+- **report_tool**: For final reporting (MANDATORY)
 
-**Tool Selection Strategy**: Analyze each task requirement against available tool capabilities to make optimal choices that maximize success probability.
+## Simple Workflow:
+1. **Analyze** the user's request
+2. **Choose** the appropriate tool
+3. **Execute** the tool with correct parameters
+4. **Use report_tool** to provide the final answer
 
-## Execution Workflow
+## Example:
+User: "What are my expenses?"
+Action: Use query_data_tool → Get results → Use report_tool with summary
 
-### Step 1: Task Analysis & Planning
+## Remember:
+- You MUST use tools
+- You MUST use report_tool at the end
+- Keep responses focused and direct
+- Always explain what you're doing before using tools
 
-**Thought Process**: 
-- Evaluate the task complexity and requirements
-- Identify the most suitable tool based on:
-  - Task nature and complexity
-  - Tool capabilities and limitations  
-  - Available information sufficiency
-- If the task can be completed with provided information alone, proceed directly to reporting
-
-### Step 2: Tool Execution
-**Action Selection**:
-- **Direct Completion**: If sufficient information is available, use `report_tool` immediately with complete results
-- **Tool Utilization**: Deploy the most appropriate specialized tool for complex tasks requiring external processing
-- **Strategic Progression**: Build upon previous tool outputs when multiple steps are needed
-
-### Step 3: Outcome Reporting
-**Mandatory Reporting**: Every task execution must conclude with `report_tool` usage containing:
-
-**For Successful Completion**:
-- Detailed summary of work performed
-- Complete results and findings  
-- Key insights or answers derived
-- Methodology used and tools deployed
-
-**For Incomplete/Failed Tasks**:
-- Clear explanation of encountered challenges
-- Specific reasons for task incompletion
-- Steps attempted and their outcomes
-- Recommendations for resolution (if applicable)
-
-## Operational Guidelines
-
-### Tool Usage Rules
-- **Single Tool Calls**: Execute only ONE tool per interaction cycle
-- **Sequential Processing**: Wait for tool feedback before proceeding to next action
-- **Adaptive Strategy**: Modify approach based on received feedback and results
-
-### Quality Standards
-- **Thoroughness**: Provide comprehensive information in all reports
-- **Clarity**: Use clear, specific language avoiding ambiguity
-- **Completeness**: Address all aspects of the original task requirement
-- **Professional Tone**: Maintain formal, objective communication style
-
-### Feedback Integration
-**Continuous Improvement**: Each tool execution provides valuable feedback that should inform:
-- Future tool selection decisions
-- Strategy refinement for similar tasks
-- Problem-solving approach optimization
-- Alternative solution identification
-
-## Error Handling & Recovery
-
-**Challenge Resolution Process**:
-1. **Identify**: Clearly define the specific obstacle or limitation encountered
-2. **Analyze**: Determine root cause and assess alternative approaches  
-3. **Adapt**: Modify strategy using different tools or methodologies
-4. **Report**: Document the challenge and resolution attempts comprehensively
-
-**Escalation Protocol**: When tasks cannot be completed despite multiple approaches, provide detailed failure analysis including attempted solutions and recommendations.
-
-## Success Metrics
-
-**Task Completion Indicators**:
-- Objective fully achieved with supporting evidence
-- Comprehensive report generated with actionable insights  
-- All questions answered with sufficient detail
-- Clear documentation of methodology and results
-
-**Quality Benchmarks**:
-- Accuracy of information provided
-- Completeness of task coverage
-- Clarity of communication
-- Strategic tool utilization efficiency
-
----
-
-## Context Information for Current Task:
-{context}
-
----
-
-**Remember**: Your effectiveness is measured not just by task completion, but by the quality of insights, thoroughness of reporting, and strategic use of available tools. Every interaction should move closer to comprehensive objective fulfillment."""
+{context}"""
 
 class Agent:
 
@@ -260,82 +199,94 @@ class Agent:
             "content": tool_result.content,
         }
 
-    def _convert_to_langchain_messages(self, messages: List[dict]):
-        """Converte mensagens do formato OpenAI para LangChain."""
+    def _convert_to_langchain_messages(self, messages: List[Dict[str, Any]]):
+        """
+        Converte mensagens do formato OpenAI para LangChain mantendo compatibilidade total.
+        
+        Suporta:
+        - Mensagens system, user, assistant e tool
+        - Tool calls com IDs automáticos quando ausentes
+        - Normalização de argumentos de tool calls
+        - Agrupamento inteligente de tool calls com suas respostas
+        """
         langchain_messages = []
+        processed_tool_message_ids = set()  # Track tool messages já processadas
         
         for i, msg in enumerate(messages):
-            if msg["role"] == "system":
-                langchain_messages.append(SystemMessage(content=msg["content"]))
-            elif msg["role"] == "user":
-                langchain_messages.append(HumanMessage(content=msg["content"]))
-            elif msg["role"] == "assistant":
-                # Para mensagens de assistant, verificar se têm tool_calls
-                if msg.get("tool_calls"):
-                    # Se tem tool_calls, criar AIMessage com tool_calls
+            role = msg["role"]
+            content = msg.get("content", "")
+            
+            if role == "system":
+                langchain_messages.append(SystemMessage(content=content))
+                
+            elif role == "user":
+                langchain_messages.append(HumanMessage(content=content))
+                
+            elif role == "assistant":
+                # Verificar se há tool calls
+                tool_calls_data = msg.get("tool_calls")
+                
+                if tool_calls_data:
+                    # Processar e normalizar tool calls
+                    normalized_tool_calls = []
+                    tool_call_ids = []
+                    
+                    for tc in tool_calls_data:
+                        # Normalizar estrutura do tool call
+                        normalized_tc = {
+                            "name": tc.get("name", tc.get("function", {}).get("name", "")),
+                            "args": tc.get("args", tc.get("arguments", tc.get("function", {}).get("arguments", {}))),
+                            "id": tc.get("id", str(uuid.uuid4())),
+                        }
+                        
+                        # Manter type se existir (compatibilidade)
+                        if "type" in tc:
+                            normalized_tc["type"] = tc["type"]
+                        
+                        normalized_tool_calls.append(normalized_tc)
+                        tool_call_ids.append(normalized_tc["id"])
+                    
+                    # Criar AIMessage com tool calls
                     langchain_messages.append(AIMessage(
-                        content=msg["content"],
-                        tool_calls=msg["tool_calls"]
+                        content=content,
+                        tool_calls=normalized_tool_calls
                     ))
                     
-                    # Verificar se há mensagens de tool correspondentes
-                    tool_call_ids = [tc.get("id") for tc in msg["tool_calls"]]
+                    # Buscar mensagens de tool correspondentes nas próximas mensagens
                     for j in range(i + 1, len(messages)):
                         next_msg = messages[j]
-                        if (next_msg["role"] == "tool" and 
-                            next_msg.get("tool_call_id") in tool_call_ids):
-                            # Incluir mensagem de tool que responde a este tool_call
-                            langchain_messages.append(ToolMessage(
-                                content=next_msg["content"],
-                                tool_call_id=next_msg["tool_call_id"]
-                            ))
-                else:
-                    # Mensagem normal de assistant
-                    langchain_messages.append(AIMessage(content=msg["content"]))
-            elif msg["role"] == "tool":
-                # Só incluir mensagens de tool se não foram incluídas acima
-                # (elas são incluídas quando processamos mensagens de assistant com tool_calls)
-                pass
-        
-        return langchain_messages
-
-    def _convert_to_langchain_messages2(self, messages):
-        """Convert internal message format to LangChain messages"""
-        langchain_messages = []
-        
-        for message in messages:
-            if message["role"] == "user":
-                langchain_messages.append(HumanMessage(content=message["content"]))
-            
-            elif message["role"] == "assistant":
-                # Check if the message has tool calls
-                if "tool_calls" in message and message["tool_calls"]:
-                    tool_calls = []
-                    for tc in message["tool_calls"]:
-                        # Ensure each tool call has an ID
-                        tool_call = {
-                            "name": tc["name"],
-                            "args": tc.get("args", tc.get("arguments", {})),
-                            "id": tc.get("id", str(uuid.uuid4())),  # Generate ID if missing
-                        }
-                        # Remove 'type' if it exists as it's not needed for LangChain
-                        if "type" in tc:
-                            tool_call["type"] = tc["type"]
                         
-                        tool_calls.append(tool_call)
-                    
-                    langchain_messages.append(AIMessage(
-                        content=message["content"], 
-                        tool_calls=tool_calls
-                    ))
+                        if next_msg["role"] == "tool":
+                            tool_call_id = next_msg.get("tool_call_id")
+                            
+                            # Se esta tool message responde a um dos tool calls atuais
+                            if tool_call_id in tool_call_ids and tool_call_id not in processed_tool_message_ids:
+                                langchain_messages.append(ToolMessage(
+                                    content=next_msg.get("content", ""),
+                                    tool_call_id=tool_call_id
+                                ))
+                                processed_tool_message_ids.add(tool_call_id)
+                        
+                        # Parar se encontrarmos outra mensagem que não seja tool
+                        elif next_msg["role"] != "tool":
+                            break
                 else:
-                    # Regular AI message without tool calls
-                    langchain_messages.append(AIMessage(content=message["content"]))
-            
-            elif message["role"] == "tool":
-                langchain_messages.append(ToolMessage(
-                    content=message["content"],
-                    tool_call_id=message.get("tool_call_id", str(uuid.uuid4()))
-                ))
+                    # Mensagem normal de assistant sem tool calls
+                    langchain_messages.append(AIMessage(content=content))
+                    
+            elif role == "tool":
+                # Só processar mensagens de tool que não foram agrupadas com assistant messages
+                tool_call_id = msg.get("tool_call_id")
+                
+                if tool_call_id not in processed_tool_message_ids:
+                    # Gerar ID se não existir (fallback para casos edge)
+                    if not tool_call_id:
+                        tool_call_id = str(uuid.uuid4())
+                    
+                    langchain_messages.append(ToolMessage(
+                        content=content,
+                        tool_call_id=tool_call_id
+                    ))
+                    processed_tool_message_ids.add(tool_call_id)
         
         return langchain_messages
