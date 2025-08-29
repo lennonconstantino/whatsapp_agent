@@ -24,7 +24,8 @@ MODEL_CONFIGS = [
         "temprature": 0,
         "max_tokens": 1000,    # Contexto adequado
         "top_p": 0.1,         # Reduzir aleatoriedade
-       # "frequency_penalty": 0.1,  # Evitar repetições        
+       # "frequency_penalty": 0.1,  # Evitar repetições
+       # funciona bem depois de aquecido
     },
     {
         "key_name": "llama388b8192",
@@ -89,7 +90,7 @@ for config in MODEL_CONFIGS:
         temperature=config.get("temperature")
     )
 
-LLM = "gpt_4o"
+LLM = "g25flash"
 
 if __name__ == "__main__":
     print()
