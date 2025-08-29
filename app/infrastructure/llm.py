@@ -1,6 +1,7 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
 
 from dotenv import load_dotenv
 import os
@@ -14,9 +15,17 @@ _PROVIDER_MAP = {
     "openai": ChatOpenAI,
     "google": ChatGoogleGenerativeAI,
     "groq": ChatGroq,
+    "ollama": ChatOllama,
 }
 
 MODEL_CONFIGS = [
+    {
+        "key_name": "ogptoss20b", # um pouco lento, mas funcionou de primeira
+        "provider": "ollama",
+        "model_name": "gpt-oss:20b",
+        "temprature": 0,
+        "validate_model_on_init": True,
+    },
     {
         "key_name": "dsr1llama70b",
         "provider": "groq",
@@ -90,7 +99,7 @@ for config in MODEL_CONFIGS:
         temperature=config.get("temperature")
     )
 
-LLM = "g25flash"
+LLM = "ogptoss20b"
 
 if __name__ == "__main__":
     print()

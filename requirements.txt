@@ -8,3 +8,5 @@ sqlmodel
 colorama
 fastapi
 langchain-groq
+langchain-ollama
+
