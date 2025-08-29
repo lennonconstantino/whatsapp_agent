@@ -1,4 +1,5 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
 
 from dotenv import load_dotenv
@@ -11,10 +12,28 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 _PROVIDER_MAP = {
     "openai": ChatOpenAI,
-    "google": ChatGoogleGenerativeAI
+    "google": ChatGoogleGenerativeAI,
+    "groq": ChatGroq,
 }
 
 MODEL_CONFIGS = [
+    {
+        "key_name": "dsr1llama70b",
+        "provider": "groq",
+        "model_name": "deepseek-r1-distill-llama-70b", #"mixtral-8x7b-32768"  # Melhor para raciocínio
+        "temprature": 0,
+        "max_tokens": 1000,    # Contexto adequado
+        "top_p": 0.1,         # Reduzir aleatoriedade
+       # "frequency_penalty": 0.1,  # Evitar repetições        
+    },
+    {
+        "key_name": "llama388b8192",
+        "provider": "groq",
+        "model_name": "llama3-8b-8192",  # Mais rápido para execução, Nao é bom para trabalhar com chamadas de tools em cadeia
+        "temprature": 0,
+        "max_tokens": 500,  # Limitar para foco
+        "top_p": 0.1,      # Reduzir aleatoriedade
+    },
     {
         "key_name": "g25flash", # Topzera e custo beneficio
         "provider" : "google",
@@ -70,7 +89,7 @@ for config in MODEL_CONFIGS:
         temperature=config.get("temperature")
     )
 
-LLM = "3.5-turbo"
+LLM = "o4"
 
 if __name__ == "__main__":
     print()

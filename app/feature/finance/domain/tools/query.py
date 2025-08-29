@@ -20,7 +20,7 @@ class WhereStatement(BaseModel):
     value: str = Field(description="Value for comparison")
 
 class QueryConfig(BaseModel):
-    table_name: str = Field(description="Table name (expense, revenue, customer)")
+    table_name: str = Field(description="Table name (expense, revenue, customer)") #, alias="table")
     select_columns: list[str] = Field(default=["*"], description="Columns to select")
     where: list[Union[WhereStatement, None]] = Field(default=[], description="Filter conditions")
 

@@ -26,6 +26,27 @@ query_task_agent = TaskAgent(
     #         "tool_calls": [{"name": "query_data_tool", "args": {"table": "expense"}}]
     #     }
     # ]
+    # examples = [
+    #     {
+    #         "role": "user",
+    #         "content": "Show my expenses"
+    #     },
+    #     {
+    #         "role": "assistant",
+    #         "content": "I'll check your expenses.",
+    #         "tool_calls": [{"name": "query_data_tool", "args": {"table_name": "expense"}}]
+    #     },
+    #     {
+    #         "role": "tool",
+    #         "content": "Expenses found: Office supplies $300, Cloud hosting $150",
+    #         "tool_call_id": "123"
+    #     },
+    #     {
+    #         "role": "assistant",
+    #         "content": "Here are your expenses: Office supplies $300, Cloud hosting $150",
+    #         "tool_calls": [{"name": "report_tool", "args": {"report": "Expenses retrieved successfully"}}]
+    #     }
+    # ]
 )
 
 add_expense_agent = TaskAgent(

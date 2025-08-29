@@ -1,3 +1,4 @@
+import uuid
 import colorama
 from typing import Dict, Any, List
 from colorama import Fore
@@ -295,5 +296,46 @@ class Agent:
                 # Só incluir mensagens de tool se não foram incluídas acima
                 # (elas são incluídas quando processamos mensagens de assistant com tool_calls)
                 pass
+        
+        return langchain_messages
+
+    def _convert_to_langchain_messages2(self, messages):
+        """Convert internal message format to LangChain messages"""
+        langchain_messages = []
+        
+        for message in messages:
+            if message["role"] == "user":
+                langchain_messages.append(HumanMessage(content=message["content"]))
+            
+            elif message["role"] == "assistant":
+                # Check if the message has tool calls
+                if "tool_calls" in message and message["tool_calls"]:
+                    tool_calls = []
+                    for tc in message["tool_calls"]:
+                        # Ensure each tool call has an ID
+                        tool_call = {
+                            "name": tc["name"],
+                            "args": tc.get("args", tc.get("arguments", {})),
+                            "id": tc.get("id", str(uuid.uuid4())),  # Generate ID if missing
+                        }
+                        # Remove 'type' if it exists as it's not needed for LangChain
+                        if "type" in tc:
+                            tool_call["type"] = tc["type"]
+                        
+                        tool_calls.append(tool_call)
+                    
+                    langchain_messages.append(AIMessage(
+                        content=message["content"], 
+                        tool_calls=tool_calls
+                    ))
+                else:
+                    # Regular AI message without tool calls
+                    langchain_messages.append(AIMessage(content=message["content"]))
+            
+            elif message["role"] == "tool":
+                langchain_messages.append(ToolMessage(
+                    content=message["content"],
+                    tool_call_id=message.get("tool_call_id", str(uuid.uuid4()))
+                ))
         
         return langchain_messages
