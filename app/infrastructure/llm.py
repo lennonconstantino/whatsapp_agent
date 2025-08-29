@@ -16,23 +16,23 @@ _PROVIDER_MAP = {
 
 MODEL_CONFIGS = [
     {
-        "key_name": "g25flash",
+        "key_name": "g25flash", # Topzera e custo beneficio
         "provider" : "google",
         "model_name": "gemini-2.5-flash",
         "temprature": 0,
     },
     {
-        "key_name":"3.5-turbo",
+        "key_name":"3.5-turbo", # Nao é eficiente para o uso e chamada de ferramentas
         "provider":"openai",
         "model_name":"gpt-3.5-turbo",
     },
     {
-        "key_name": "o4",
+        "key_name": "o4", # Melhor custo beneficio
         "provider": "openai",
         "model_name": "o4-mini-2025-04-16",
     },
     {
-        "key_name": "gpt_4o",
+        "key_name": "gpt_4o", # Topzera
         "provider": "openai",
         "model_name": "gpt-4o-2024-08-06",
     },
@@ -70,7 +70,7 @@ for config in MODEL_CONFIGS:
         temperature=config.get("temperature")
     )
 
-LLM = "g25flash"
+LLM = "3.5-turbo"
 
 if __name__ == "__main__":
     print()

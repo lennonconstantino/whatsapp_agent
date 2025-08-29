@@ -14,7 +14,18 @@ query_task_agent = TaskAgent(
     description="An agent that can perform queries on multiple data sources",
     create_user_context=lambda: generate_query_context(Expense, Revenue, Customer),
     tools=[query_data_tool],
-    system_message=TASK_SYSTEM_MESSAGE
+    system_message=TASK_SYSTEM_MESSAGE,
+    # examples=[
+    #     {
+    #         "role": "user",
+    #         "content": "What are my expenses?"
+    #     },
+    #     {
+    #         "role": "assistant",
+    #         "content": "I'll check your expenses using the database tool.",
+    #         "tool_calls": [{"name": "query_data_tool", "args": {"table": "expense"}}]
+    #     }
+    # ]
 )
 
 add_expense_agent = TaskAgent(
